@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
-import { Theme, defaultWindowThemes } from '../lib/themes';
+import { defaultWindowThemes } from '../lib/themes';
 import { useDesktopSettings } from '../lib/store';
 
 interface WindowProps {
@@ -12,7 +12,6 @@ interface WindowProps {
   width: number;
   height: number;
   zIndex: number;
-  initialTheme?: Theme;
   onClose: () => void;
   onFocus: () => void;
   onDragStop: (x: number, y: number) => void;
@@ -27,7 +26,6 @@ const Window: React.FC<WindowProps> = ({
   width,
   height,
   zIndex,
-  initialTheme,
   onClose,
   onFocus,
   onDragStop,
@@ -35,21 +33,13 @@ const Window: React.FC<WindowProps> = ({
   children,
 }) => {
   const { mode } = useDesktopSettings();
-  const [theme, setTheme] = useState(initialTheme);
+  const [theme, setTheme] = useState<{ background: string; foreground: string; closeButton: string; border: string }>(defaultWindowThemes[mode]);
 
-  // If the app provides a theme, always use it for the window. Otherwise, use global mode theme.
-  let windowTheme: { background: string; foreground: string; closeButton: string; border: string };
-  if (theme && theme.window && theme.window.background && theme.window.foreground && theme.window.closeButton) {
-    const t = theme.window as { background: string; foreground: string; closeButton: string; border?: string };
-    windowTheme = {
-      background: t.background,
-      foreground: t.foreground,
-      closeButton: t.closeButton,
-      border: t.border || defaultWindowThemes[mode].border,
-    };
-  } else {
-    windowTheme = defaultWindowThemes[mode];
-  }
+  useEffect(() => {
+    setTheme(defaultWindowThemes[mode]);
+  }, [mode]);
+
+  const windowTheme = theme;
 
   return (
     <Rnd
@@ -87,7 +77,7 @@ const Window: React.FC<WindowProps> = ({
           <div className="w-4 h-4"></div>
         </div>
         <div className="flex-grow overflow-hidden">
-          {React.cloneElement(children as React.ReactElement<{ onThemeChange?: (theme: Theme) => void }>, { onThemeChange: setTheme })}
+          {React.cloneElement(children as React.ReactElement<{ onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; border: string }) => void }>, { onThemeChange: setTheme })}
         </div>
       </div>
     </Rnd>

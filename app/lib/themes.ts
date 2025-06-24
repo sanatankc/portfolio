@@ -1,4 +1,4 @@
-export interface Theme {
+export interface TerminalTheme {
   name: string;
   colors: {
     background: string;
@@ -9,6 +9,7 @@ export interface Theme {
     background: string;
     foreground: string;
     closeButton: string;
+    border: string;
   }
 }
 
@@ -17,7 +18,7 @@ export const defaultWindowThemes = {
     background: '#23272e',
     foreground: '#e5e7eb',
     closeButton: '#ef4444',
-    border: '#444',
+    border: '#bbb',
   },
   light: {
     background: '#f3f4f6',
@@ -27,7 +28,7 @@ export const defaultWindowThemes = {
   },
 };
 
-export const themes: { [key: string]: Theme } = {
+export const terminalThemes: { [key: string]: TerminalTheme } = {
   default: {
     name: 'default',
     colors: {
@@ -39,6 +40,7 @@ export const themes: { [key: string]: Theme } = {
       background: '#c0c0c0',
       foreground: '#000000',
       closeButton: '#ff0000',
+      border: '#000000',
     }
   },
   dark: {
@@ -52,6 +54,7 @@ export const themes: { [key: string]: Theme } = {
       background: '#333333',
       foreground: '#ffffff',
       closeButton: '#ff6666',
+      border: '#00ff00',
     }
   },
   solarized: {
@@ -65,6 +68,7 @@ export const themes: { [key: string]: Theme } = {
       background: '#eee8d5',
       foreground: '#002b36',
       closeButton: '#dc322f',
+      border: '#073642',
     }
   },
 }; 

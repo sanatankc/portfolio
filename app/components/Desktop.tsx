@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Window from './Window';
 import Icon from './Icon';
 import { getApps, getApp } from '../lib/apps';
-import { themes as defaultThemes } from '../lib/themes';
 import { useDesktopSettings } from '../lib/store';
 
 interface WindowState {
@@ -97,7 +96,6 @@ const Desktop = () => {
         const app = getApp(win.appId);
         if (!app) return null;
         const AppComponent = app.component;
-
         return (
           <Window
             key={win.id}
@@ -107,7 +105,6 @@ const Desktop = () => {
             width={win.width}
             height={win.height}
             zIndex={win.zIndex}
-            initialTheme={defaultThemes.dark}
             onClose={() => closeWindow(win.id)}
             onFocus={() => bringToFront(win.id)}
             onDragStop={(x, y) => updateWindowPosition(win.id, x, y)}

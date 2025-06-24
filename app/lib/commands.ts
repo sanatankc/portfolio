@@ -1,17 +1,17 @@
 import { Filesystem } from './filesystem';
-import { Theme, themes as defaultThemes } from './themes';
+import { TerminalTheme, terminalThemes as defaultTerminalThemes } from './themes';
 import { getDirectoryByPath } from './path';
 
 export interface CommandContext {
     args: string[];
-    themes: { [key: string]: Theme };
+    themes: { [key: string]: TerminalTheme };
     currentPath: string[];
     filesystem: Filesystem;
     addToHistory: (line: string | string[]) => void;
     clearHistory: () => void;
     prompt: (question?: string) => Promise<string>;
-    setThemes: (themes: { [key: string]: Theme }) => void;
-    setCurrentTheme: (theme: Theme) => void;
+    setThemes: (themes: { [key: string]: TerminalTheme }) => void;
+    setCurrentTheme: (theme: TerminalTheme) => void;
     commands: Commands;
 }
 
@@ -77,14 +77,14 @@ const theme: CommandFunction = async ({ args, themes, addToHistory, setCurrentTh
     const [subcommand, ...rest] = args;
 
     if (subcommand === 'list') {
-        const availableThemes = {...defaultThemes, ...themes};
+        const availableThemes = {...defaultTerminalThemes, ...themes};
         addToHistory(`Available themes: ${Object.keys(availableThemes).join(', ')}`);
         return;
     }
 
     if (subcommand === 'set') {
         const themeOrPrompt = rest.join(' ').replace(/"/g, '');
-        const availableThemes = {...defaultThemes, ...themes};
+        const availableThemes = {...defaultTerminalThemes, ...themes};
 
         if (availableThemes[themeOrPrompt]) {
             setCurrentTheme(availableThemes[themeOrPrompt]);
@@ -94,14 +94,14 @@ const theme: CommandFunction = async ({ args, themes, addToHistory, setCurrentTh
 
         // --- Theme Generation Flow ---
         let currentPrompt = themeOrPrompt;
-        let tempTheme: Theme | null = null;
+        let tempTheme: TerminalTheme | null = null;
         
         while (true) {
             addToHistory(`Generating theme for: "${currentPrompt}"...`);
             
             // Mock API call
             await new Promise(resolve => setTimeout(resolve, 1500));
-            const newTheme: Theme = {
+            const newTheme: TerminalTheme = {
               name: currentPrompt.toLowerCase().replace(/\s/g, '-').slice(0, 20),
               colors: {
                 background: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
@@ -112,6 +112,7 @@ const theme: CommandFunction = async ({ args, themes, addToHistory, setCurrentTh
                 background: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
                 foreground: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
                 closeButton: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
+                border: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
               }
             };
             
@@ -119,7 +120,7 @@ const theme: CommandFunction = async ({ args, themes, addToHistory, setCurrentTh
             setCurrentTheme(newTheme);
 
             addToHistory([
-                `Theme "${newTheme.name}" generated.`,
+                `Theme \"${newTheme.name}\" generated.`,
                 `Do you want to apply this theme? (yes/no/prompt to refine)`
             ]);
             
@@ -128,13 +129,13 @@ const theme: CommandFunction = async ({ args, themes, addToHistory, setCurrentTh
             if (answer.toLowerCase() === 'yes') {
                 const newThemes = {...themes, [tempTheme.name]: tempTheme};
                 setThemes(newThemes);
-                localStorage.setItem('themes', JSON.stringify(newThemes));
-                addToHistory(`Theme "${tempTheme.name}" saved.`);
+                localStorage.setItem('terminalThemes', JSON.stringify(newThemes));
+                addToHistory(`Theme \"${tempTheme.name}\" saved.`);
                 break;
             } else if (answer.toLowerCase() === 'no') {
                 // Revert to the original theme
                 const originalThemeName = Object.values(themes).find(t => t.name === newTheme.name) ? newTheme.name : 'default';
-                setCurrentTheme(themes[originalThemeName] || defaultThemes.default);
+                setCurrentTheme(themes[originalThemeName] || defaultTerminalThemes.default);
                 addToHistory('Theme generation cancelled.');
                 break;
             } else {

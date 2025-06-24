@@ -2,12 +2,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { commands, CommandContext } from '../lib/commands';
-import { themes as defaultThemes, Theme } from '../lib/themes';
+import { terminalThemes as defaultTerminalThemes, TerminalTheme } from '../lib/themes';
 import { filesystem } from '../lib/filesystem';
 import { resolvePath } from '../lib/path';
 
 interface TerminalProps {
-  onThemeChange?: (theme: Theme) => void;
+  onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; border: string }) => void;
 }
 
 const Terminal: React.FC<TerminalProps> = ({ onThemeChange }) => {
@@ -16,8 +16,8 @@ const Terminal: React.FC<TerminalProps> = ({ onThemeChange }) => {
     "Type 'help' to see available commands.",
   ]);
   const [input, setInput] = useState('');
-  const [themes, setThemes] = useState(defaultThemes);
-  const [currentTheme, setCurrentTheme] = useState<Theme>(defaultThemes.dark);
+  const [themes, setThemes] = useState(defaultTerminalThemes);
+  const [currentTheme, setCurrentTheme] = useState<TerminalTheme>(defaultTerminalThemes.dark);
   const [currentPath, setCurrentPath] = useState(['~']);
   const [isExecuting, setIsExecuting] = useState(false);
   const [promptState, setPromptState] = useState<{
@@ -30,8 +30,16 @@ const Terminal: React.FC<TerminalProps> = ({ onThemeChange }) => {
   const inputRef = useRef<null | HTMLInputElement>(null);
 
   useEffect(() => {
-    if (onThemeChange && currentTheme && currentTheme.window && currentTheme.window.background && currentTheme.window.foreground && currentTheme.window.closeButton) {
-      onThemeChange(currentTheme);
+    if (
+      onThemeChange &&
+      currentTheme &&
+      currentTheme.window &&
+      currentTheme.window.background &&
+      currentTheme.window.foreground &&
+      currentTheme.window.closeButton &&
+      currentTheme.window.border
+    ) {
+      onThemeChange(currentTheme.window);
     }
   }, [currentTheme, onThemeChange]);
 
@@ -126,7 +134,7 @@ const Terminal: React.FC<TerminalProps> = ({ onThemeChange }) => {
   }, [history]);
 
   useEffect(() => {
-    const savedThemes = localStorage.getItem('themes');
+    const savedThemes = localStorage.getItem('terminalThemes');
     if (savedThemes) {
       setThemes(JSON.parse(savedThemes));
     }
@@ -151,7 +159,8 @@ const Terminal: React.FC<TerminalProps> = ({ onThemeChange }) => {
     span.style.visibility = 'hidden';
     span.style.position = 'absolute';
     span.style.font = window.getComputedStyle(inputRef.current).font;
-    span.textContent = input.slice(0, caretPos);
+    span.style.whiteSpace = 'pre';
+    span.innerText = input.slice(0, caretPos);
     document.body.appendChild(span);
     const width = span.offsetWidth;
     document.body.removeChild(span);
@@ -187,6 +196,9 @@ const Terminal: React.FC<TerminalProps> = ({ onThemeChange }) => {
               className="bg-transparent border-none text-[var(--foreground)] focus:outline-none pl-2 w-full"
               style={{ caretColor: 'transparent' }}
               disabled={isExecuting && !promptState}
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
             />
             <span
               className="absolute top-0 h-full w-2 bg-[var(--foreground)] animate-pulse"
