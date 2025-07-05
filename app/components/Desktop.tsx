@@ -21,6 +21,8 @@ let nextId = 1;
 const Desktop = () => {
   const [windows, setWindows] = useState<WindowState[]>([]);
   const apps = getApps();
+
+  console.log('apps...', apps)
   const { wallpaper, mode } = useDesktopSettings();
 
   const bgStyle: React.CSSProperties = {};

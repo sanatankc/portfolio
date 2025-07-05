@@ -1,13 +1,15 @@
 import Terminal from '@/app/components/Terminal';
 import React from 'react';
 import Settings from '@/app/components/Settings';
+import Chat from '@/app/components/Chat';
 import TerminalIcon from '@/app/components/TerminalIcon';
 import SettingsIcon from '@/app/components/SettingsIcon';
+import ChatIcon from '@/app/components/ChatIcon';
 
 export interface App {
   id: string;
   name: string;
-  component: React.FC<any>;
+  component: React.FC;
   icon: React.FC;
 }
 
@@ -23,6 +25,12 @@ const apps: App[] = [
     name: 'Settings',
     component: Settings,
     icon: SettingsIcon,
+  },
+  {
+    id: 'chat',
+    name: 'Chat',
+    component: Chat,
+    icon: ChatIcon,
   },
 ];
 

@@ -95,51 +95,46 @@ const theme: CommandFunction = async ({ args, themes, addToHistory, setCurrentTh
         // --- Theme Generation Flow ---
         let currentPrompt = themeOrPrompt;
         let tempTheme: TerminalTheme | null = null;
-        
+        let refine: string | undefined = undefined;
         while (true) {
             addToHistory(`Generating theme for: "${currentPrompt}"...`);
-            
-            // Mock API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            const newTheme: TerminalTheme = {
-              name: currentPrompt.toLowerCase().replace(/\s/g, '-').slice(0, 20),
-              colors: {
-                background: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
-                foreground: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
-                border: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
-              },
-              window: {
-                background: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
-                foreground: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
-                closeButton: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
-                border: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
-              }
-            };
-            
-            tempTheme = newTheme;
-            setCurrentTheme(newTheme);
-
-            addToHistory([
-                `Theme \"${newTheme.name}\" generated.`,
-                `Do you want to apply this theme? (yes/no/prompt to refine)`
-            ]);
-            
-            const answer = await prompt();
-
-            if (answer.toLowerCase() === 'yes') {
-                const newThemes = {...themes, [tempTheme.name]: tempTheme};
-                setThemes(newThemes);
-                localStorage.setItem('terminalThemes', JSON.stringify(newThemes));
-                addToHistory(`Theme \"${tempTheme.name}\" saved.`);
+            try {
+                const res = await fetch('/api/generate-cli-theme', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: currentPrompt, refine }),
+                });
+                if (!res.ok) {
+                    addToHistory('Failed to generate theme.');
+                    break;
+                }
+                const newTheme: TerminalTheme = await res.json();
+                tempTheme = newTheme;
+                setCurrentTheme(newTheme);
+                addToHistory([
+                    `Theme "${newTheme.name}" generated.`,
+                    `Do you want to apply this theme? (yes/no/prompt to refine)`
+                ]);
+                const answer = await prompt();
+                if (answer.toLowerCase() === 'yes') {
+                    const newThemes = {...themes, [tempTheme.name]: tempTheme};
+                    setThemes(newThemes);
+                    localStorage.setItem('terminalThemes', JSON.stringify(newThemes));
+                    addToHistory(`Theme "${tempTheme.name}" saved.`);
+                    break;
+                } else if (answer.toLowerCase() === 'no') {
+                    // Revert to the original theme
+                    const originalThemeName = Object.values(themes).find(t => t.name === newTheme.name) ? newTheme.name : 'default';
+                    setCurrentTheme(themes[originalThemeName] || defaultTerminalThemes.default);
+                    addToHistory('Theme generation cancelled.');
+                    break;
+                } else {
+                    refine = answer;
+                    currentPrompt = themeOrPrompt;
+                }
+            } catch {
+                addToHistory('Error calling theme generation API.');
                 break;
-            } else if (answer.toLowerCase() === 'no') {
-                // Revert to the original theme
-                const originalThemeName = Object.values(themes).find(t => t.name === newTheme.name) ? newTheme.name : 'default';
-                setCurrentTheme(themes[originalThemeName] || defaultTerminalThemes.default);
-                addToHistory('Theme generation cancelled.');
-                break;
-            } else {
-                currentPrompt = `${currentPrompt}, but ${answer}`;
             }
         }
         return;

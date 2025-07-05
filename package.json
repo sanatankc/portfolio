@@ -9,12 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.2.19",
+    "@t3-oss/env-nextjs": "^0.13.8",
     "@types/react-rnd": "^8.0.0",
+    "ai": "^4.3.16",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-rnd": "^10.5.2",
+    "vercel-ai": "^0.0.0",
+    "zod": "^3.25.67",
     "zustand": "^5.0.5"
   },
   "devDependencies": {

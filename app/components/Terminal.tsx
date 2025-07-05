@@ -199,6 +199,7 @@ const Terminal: React.FC<TerminalProps> = ({ onThemeChange }) => {
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
+              autoComplete="off"
             />
             <span
               className="absolute top-0 h-full w-2 bg-[var(--foreground)] animate-pulse"
