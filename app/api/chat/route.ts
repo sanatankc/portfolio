@@ -43,69 +43,104 @@ const calculateTool = tool({
   }
 });
 
-interface ChatMessage {
-  sender: 'user' | 'ai';
-  content: string;
-}
+const wallpaperTool = tool({
+  description: 'Search for wallpaper images based on a query. Returns a collection of high-quality images that can be used as wallpapers. Add wallpaper prefix if needed like "pastel wallpaper"',
+  parameters: z.object({
+    query: z.string().describe('The search term for wallpapers (e.g., "nature", "mountains", "abstract", "space")')
+  }),
+  execute: async ({ query }: { query: string }) => {
+    try {
+      // Call the internal search-images API
+      const baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.NODE_ENV === 'development'
+          ? 'http://localhost:3001'  // Updated port for dev
+          : 'http://localhost:3000';
+      
+      const response = await fetch(`${baseUrl}/api/search-images`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query,
+          page: 1,
+          per_page: 10
+        })
+      });
+
+      if (!response.ok) {
+        return `Error searching for wallpapers: ${response.statusText}`;
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        return `Error: ${data.error}`;
+      }
+
+      return {
+        query: query,
+        total: data.total,
+        images: data.results.map((image: { id: string; description: string | null; alt_description: string | null; urls: { regular: string; small: string; thumb: string }; user: { name: string; username: string }; likes: number; color: string }) => ({
+          id: image.id,
+          description: image.description || image.alt_description || 'Wallpaper image',
+          urls: {
+            regular: image.urls.regular,
+            small: image.urls.small,
+            thumb: image.urls.thumb
+          },
+          user: {
+            name: image.user.name,
+            username: image.user.username
+          },
+          likes: image.likes,
+          color: image.color
+        }))
+      };
+    } catch (error) {
+      console.error('Wallpaper search error:', error);
+      return "Error: Failed to search for wallpapers. Please try again.";
+    }
+  }
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, messages = [] }: { message: string; messages?: ChatMessage[] } = await request.json();
+    const { messages } = await request.json();
     
-    if (!message || typeof message !== 'string') {
-      return new Response('Message is required', { status: 400 });
+    if (!messages || !Array.isArray(messages)) {
+      return new Response('Messages array is required', { status: 400 });
     }
 
-    // Convert messages to AI SDK format
-    const aiMessages = messages.map((msg: ChatMessage) => ({
-      role: msg.sender === 'user' ? 'user' as const : 'assistant' as const,
-      content: msg.content
-    }));
-
-    // Add the current message
-    aiMessages.push({
-      role: 'user' as const,
-      content: message
-    });
-
-    const { textStream } = streamText({
+    const result = streamText({
       model: google('gemini-2.0-flash-exp'),
-      messages: aiMessages,
+      messages,
       tools: {
         getCurrentTime: getCurrentTimeTool,
-        calculate: calculateTool
+        calculate: calculateTool,
+        wallpaper: wallpaperTool
       },
       system: `You are a helpful AI assistant. You can help with:
 - General questions and conversations
 - Mathematical calculations (use the calculate tool)
 - Getting current time (use the getCurrentTime tool)
+- Finding & setting wallpaper images (use the wallpaper tool)
 - Programming and technical questions
 - Creative writing and brainstorming
 
-Be friendly, helpful, and concise. When you need to perform calculations or get the current time, use the appropriate tools.`,
+NEVER REPLY ON YOUR CAPABILITIES, FOR THINGS LIKE ADD ETC. WE HAVE PROVIDED THE TOOLS FOR THAT.
+ALWAYS CALL THEM INSTEAD.
+
+When users ask for wallpapers, backgrounds, or want to change their desktop/phone wallpaper, use the wallpaper tool to search for relevant images. Common wallpaper categories include: nature, abstract, space, mountains, ocean, city, minimalist, dark, etc.
+
+Be friendly, helpful, and concise. When you need to perform calculations, get the current time, or search for wallpapers, use the appropriate tools.`,
       maxTokens: 1000,
       maxSteps: 5,
       temperature: 0.7,
     });
 
-    const loggingStream = new TransformStream({
-      transform(chunk, controller) {
-        // Handle both string and binary chunks
-        const text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
-        console.log('Streaming chunk:', text);
-        // Pass the chunk through
-        controller.enqueue(chunk);
-      }
-    });
-
-    // Return the streaming response
-    return new Response(textStream.pipeThrough(loggingStream), {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
+    return result.toDataStreamResponse();
     
   } catch (error) {
     console.error('Chat API error:', error);

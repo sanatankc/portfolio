@@ -9,6 +9,7 @@ export interface TerminalTheme {
     background: string;
     foreground: string;
     closeButton: string;
+    closeButtonText: string;
     border: string;
   }
 }
@@ -18,12 +19,14 @@ export const defaultWindowThemes = {
     background: '#23272e',
     foreground: '#e5e7eb',
     closeButton: '#ef4444',
+    closeButtonText: '#ffffff',
     border: '#bbb',
   },
   light: {
     background: '#f3f4f6',
     foreground: '#222',
     closeButton: '#ef4444',
+    closeButtonText: '#ffffff',
     border: '#bbb',
   },
 };
@@ -40,6 +43,7 @@ export const terminalThemes: { [key: string]: TerminalTheme } = {
       background: '#c0c0c0',
       foreground: '#000000',
       closeButton: '#ff0000',
+      closeButtonText: '#ffffff',
       border: '#000000',
     }
   },
@@ -54,7 +58,8 @@ export const terminalThemes: { [key: string]: TerminalTheme } = {
       background: '#333333',
       foreground: '#ffffff',
       closeButton: '#ff6666',
-      border: '#00ff00',
+      closeButtonText: '#ffffff',
+      border: '#000000',
     }
   },
   solarized: {
@@ -68,6 +73,7 @@ export const terminalThemes: { [key: string]: TerminalTheme } = {
       background: '#eee8d5',
       foreground: '#002b36',
       closeButton: '#dc322f',
+      closeButtonText: '#ffffff',
       border: '#073642',
     }
   },

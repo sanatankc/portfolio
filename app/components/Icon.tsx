@@ -13,7 +13,12 @@ const Icon: React.FC<IconProps> = ({ label, onDoubleClick, children }) => {
       onDoubleClick={onDoubleClick}
     >
       {children}
-      <span>{label}</span>
+      <span 
+        className="font-mono text-sm"
+        style={{textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 0.5px 0.5px #000, -0.5px -0.5px #000, 0.5px -0.5px #000, -0.5px 0.5px #000'}}
+      >
+        {label}
+      </span>
     </div>
   );
 };

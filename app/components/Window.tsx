@@ -33,7 +33,7 @@ const Window: React.FC<WindowProps> = ({
   children,
 }) => {
   const { mode } = useDesktopSettings();
-  const [theme, setTheme] = useState<{ background: string; foreground: string; closeButton: string; border: string }>(defaultWindowThemes[mode]);
+  const [theme, setTheme] = useState(defaultWindowThemes[mode]);
 
   useEffect(() => {
     setTheme(defaultWindowThemes[mode]);
@@ -59,22 +59,40 @@ const Window: React.FC<WindowProps> = ({
       style={{ zIndex, borderColor: windowTheme.border }}
       bounds="parent"
       dragHandleClassName="window-title-bar"
-      className="border-2"
+      className="border-pixel-lg border-2"
     >
       <div className="w-full h-full flex flex-col" style={{background: windowTheme.background}}>
-        <div className="h-6 border-b-2 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
+        <div className="h-8 border-b-2 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
              style={{borderColor: windowTheme.border, color: windowTheme.foreground}}
         >
+          <div className='flex flex-col py-1 h-full justify-around w-[15px] mr-2'>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
               onClose();
             }}
-            className="w-4 h-4 border-2"
-            style={{borderColor: windowTheme.foreground, backgroundColor: windowTheme.closeButton}}
-          ></button>
+            className="w-[20px] h-[20px] border-1 border-pixel-xs flex items-center justify-center"
+              style={{borderColor: windowTheme.foreground, backgroundColor: windowTheme.closeButton, color: windowTheme.closeButtonText}}
+          >
+            <i className="hn hn-times-solid text-xs"></i>
+          </button>
+          <div className='flex flex-col py-1 h-full justify-around flex-1 ml-2'>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          </div>
+          <div className="w-4 h-4"></div>
           <span className="font-mono">{title}</span>
           <div className="w-4 h-4"></div>
+          <div className='flex flex-col py-1 h-full justify-around flex-1'>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          </div>
         </div>
         <div className="flex-grow overflow-hidden">
           {React.cloneElement(children as React.ReactElement<{ onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; border: string }) => void }>, { onThemeChange: setTheme })}

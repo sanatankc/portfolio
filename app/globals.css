@@ -1,9 +1,14 @@
 @import "tailwindcss";
+@import "../node_modules/@hackernoon/pixel-icon-library/fonts/iconfont.css";
+@config "../tailwind.config.ts";
 
+@font-face {
+  font-family: 'Chicago Plain';
+  src: url('./fonts/Chicago.woff') format('woff');
+}
 body {
   background-color: #000;
   color: #fff;
-  font-family: 'monospace', 'Menlo', 'Monaco', 'Consolas', 'Courier New';
 }
 
 .title-bar-stripes {
