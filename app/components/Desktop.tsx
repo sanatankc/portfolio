@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Window from './Window';
 import Icon from './Icon';
 import { getApps, getApp } from '../lib/apps';
 import { useDesktopSettings } from '../lib/store';
+import { DesktopFxPlayer } from '../lib/fx';
 
 interface WindowState {
   id: number;
@@ -21,9 +22,17 @@ let nextId = 1;
 const Desktop = () => {
   const [windows, setWindows] = useState<WindowState[]>([]);
   const apps = getApps();
+  const fxPlayerRef = useRef<DesktopFxPlayer | null>(null);
 
   console.log('apps...', apps)
   const { wallpaper, mode } = useDesktopSettings();
+
+  // Initialize fx player once
+  useEffect(() => {
+    if (!fxPlayerRef.current) {
+      fxPlayerRef.current = new DesktopFxPlayer();
+    }
+  }, []);
 
   const bgStyle: React.CSSProperties = {};
   if (wallpaper.type === 'color') {
@@ -60,6 +69,7 @@ const Desktop = () => {
   };
 
   const closeWindow = (id: number) => {
+    fxPlayerRef.current?.play("close");
     setWindows(windows.filter(w => w.id !== id));
   };
 
@@ -96,7 +106,7 @@ const Desktop = () => {
 
       {windows.map(win => {
         const app = getApp(win.appId);
-        if (!app) return null;
+        if (!app || !fxPlayerRef.current) return null;
         const AppComponent = app.component;
         return (
           <Window
@@ -112,7 +122,7 @@ const Desktop = () => {
             onDragStop={(x, y) => updateWindowPosition(win.id, x, y)}
             onResizeStop={(width, height, x, y) => updateWindowSize(win.id, width, height, x, y)}
           >
-            <AppComponent />
+            <AppComponent fx={fxPlayerRef.current} />
           </Window>
         );
       })}

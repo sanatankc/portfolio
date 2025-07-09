@@ -20,14 +20,14 @@ export const defaultWindowThemes = {
     foreground: '#e5e7eb',
     closeButton: '#ef4444',
     closeButtonText: '#ffffff',
-    border: '#bbb',
+    border: '#000000',
   },
   light: {
     background: '#f3f4f6',
     foreground: '#222',
     closeButton: '#ef4444',
     closeButtonText: '#ffffff',
-    border: '#bbb',
+    border: '#000000',
   },
 };
 

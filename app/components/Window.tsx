@@ -59,13 +59,13 @@ const Window: React.FC<WindowProps> = ({
       style={{ zIndex, borderColor: windowTheme.border }}
       bounds="parent"
       dragHandleClassName="window-title-bar"
-      className="border-pixel-lg border-2"
+      className="border-pixel-sm-[#c0c0c0]"
     >
       <div className="w-full h-full flex flex-col" style={{background: windowTheme.background}}>
-        <div className="h-8 border-b-2 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
-             style={{borderColor: windowTheme.border, color: windowTheme.foreground}}
+        <div className="h-7 border-b-1 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
+          style={{ borderColor: windowTheme.border, color: windowTheme.foreground }}
         >
-          <div className='flex flex-col py-1 h-full justify-around w-[15px] mr-2'>
+          <div className='flex flex-col py-1 h-full justify-around w-[15px] mr-1'>
             <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
             <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
             <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
@@ -75,12 +75,12 @@ const Window: React.FC<WindowProps> = ({
               e.stopPropagation();
               onClose();
             }}
-            className="w-[20px] h-[20px] border-1 border-pixel-xs flex items-center justify-center"
+            className="w-[20px] h-[20px] border-pixel-xs-black flex items-center justify-center"
               style={{borderColor: windowTheme.foreground, backgroundColor: windowTheme.closeButton, color: windowTheme.closeButtonText}}
           >
             <i className="hn hn-times-solid text-xs"></i>
           </button>
-          <div className='flex flex-col py-1 h-full justify-around flex-1 ml-2'>
+          <div className='flex flex-col py-1 h-full justify-around flex-1 ml-1'>
             <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
             <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
             <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
@@ -95,7 +95,7 @@ const Window: React.FC<WindowProps> = ({
           </div>
         </div>
         <div className="flex-grow overflow-hidden">
-          {React.cloneElement(children as React.ReactElement<{ onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; border: string }) => void }>, { onThemeChange: setTheme })}
+          {React.cloneElement(children as React.ReactElement<{ onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; closeButtonText: string; border: string }) => void }>, { onThemeChange: setTheme })}
         </div>
       </div>
     </Rnd>

@@ -16,9 +16,7 @@ interface ChatTheme {
   aiText: string;
 }
 
-interface ChatProps {
-  onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; border: string }) => void;
-}
+import { AppProps } from '../lib/apps';
 
 // Type definitions for tool invocation
 interface ToolInvocation {
@@ -35,9 +33,9 @@ const defaultTheme: ChatTheme = {
   border: 'border-gray-700',
   inputBg: 'bg-gray-800',
   inputText: 'text-gray-100',
-  userBubble: 'bg-blue-600',
-  aiBubble: 'bg-gray-700',
-  userText: 'text-white',
+  userBubble: 'bg-gray-200',
+  aiBubble: 'bg-slate-700',
+  userText: 'text-black',
   aiText: 'text-gray-100',
 };
 
@@ -282,7 +280,9 @@ const WallpaperSelector = ({ wallpaperData, onThemeChange }: {
   );
 };
 
-export default function Chat({ onThemeChange }: ChatProps) {
+export default function Chat({ fx, onThemeChange }: AppProps) {
+  // fx is available for future use
+  void fx;
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/chat',
     initialMessages: [
@@ -320,7 +320,7 @@ export default function Chat({ onThemeChange }: ChatProps) {
   console.log(messages);
 
   return (
-    <div className={`h-full flex flex-col ${defaultTheme.bg} ${defaultTheme.text}`}>
+    <div className={`h-full flex flex-col bg-white text-black`}>
       {/* Header */}
       <div className={`p-3 border-b ${defaultTheme.border} flex items-center justify-between`}>
         <h2 className="font-semibold">AI Chat</h2>
@@ -337,10 +337,10 @@ export default function Chat({ onThemeChange }: ChatProps) {
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${
+              className={`max-w-[80%] px-4 py-2 ${
                 message.role === 'user'
-                  ? `${defaultTheme.userBubble} ${defaultTheme.userText}`
-                  : `${defaultTheme.aiBubble} ${defaultTheme.aiText}`
+                  ? `${defaultTheme.userBubble} ${defaultTheme.userText} border-pixel-sm-[#c0c0c0]`
+                  : `${defaultTheme.aiBubble} ${defaultTheme.aiText} border-pixel-sm-slate-700`
               }`}
             >
               {/* Render message parts */}
@@ -372,7 +372,7 @@ export default function Chat({ onThemeChange }: ChatProps) {
               )}
               
               <div className={`text-xs mt-1 ${
-                message.role === 'user' ? 'text-blue-200' : 'text-gray-400'
+                message.role === 'user' ? 'text-slate-900' : 'text-gray-400'
               }`}>
                 {formatTime(message.createdAt || new Date())}
               </div>
@@ -398,7 +398,7 @@ export default function Chat({ onThemeChange }: ChatProps) {
 
       {/* Input */}
       <div className={`p-4 border-t ${defaultTheme.border}`}>
-        <form onSubmit={handleSubmit} className="flex space-x-2">
+        <form onSubmit={handleSubmit} className="flex space-x-2 items-end">
           <textarea
             value={input}
             onChange={handleInputChange}
@@ -408,22 +408,19 @@ export default function Chat({ onThemeChange }: ChatProps) {
                 handleSubmit(e);
               }
             }}
-            placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-            className={`flex-1 p-3 rounded-lg resize-none ${defaultTheme.inputBg} ${defaultTheme.inputText} border ${defaultTheme.border} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-            rows={1}
+            placeholder="Type your message..."
+            className={`flex-1 p-2 resize-none border-pixel-lg-black bg-black/10 text-black focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            rows={Math.min(3, input.split('\n').length)}
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className={`px-4 py-2 rounded-lg bg-blue-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors`}
+            className={`px-4 max-h-[54px] py-2 border-pixel-lg-black/50  bg-black text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/90 transition-colors`}
           >
             Send
           </button>
         </form>
-        <div className="mt-2 text-xs text-gray-400">
-          <span className="font-medium">AI Assistant:</span> Ask me anything! I can help with calculations, get the current time, find wallpapers, and answer questions.
-        </div>
       </div>
     </div>
   );

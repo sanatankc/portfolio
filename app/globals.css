@@ -6,9 +6,16 @@
   font-family: 'Chicago Plain';
   src: url('./fonts/Chicago.woff') format('woff');
 }
+
+@font-face {
+  font-family: 'Geneva-12';
+  src: url('./fonts/geneva-12.otf') format('opentype');
+}
+
 body {
   background-color: #000;
   color: #fff;
+  font-family: 'Geneva-12', sans-serif;
 }
 
 .title-bar-stripes {

@@ -1,5 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useDesktopSettings, WallpaperType, IconSize } from '../lib/store';
+import { defaultWindowThemes } from '../lib/themes';
+import { AppProps } from '../lib/apps';
+import clsx from 'clsx';
 
 const builtInWallpapers: WallpaperType[] = [
   { type: 'color', value: '#222' },
@@ -10,10 +13,31 @@ const builtInWallpapers: WallpaperType[] = [
   { type: 'image', value: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80' },
 ];
 
-const Settings: React.FC = () => {
+
+const tabs = [
+  {
+    label: 'Display',
+    value: 'display',
+  },
+  {
+    label: 'System',
+    value: 'system',
+  },
+  {
+    label: 'About',
+    value: 'about',
+  },
+  {
+    label: 'Reset',
+    value: 'reset',
+  },
+] as const;
+
+const Settings: React.FC<AppProps> = ({ fx }) => {
   const { wallpaper, setWallpaper, iconSize, setIconSize, mode, setMode } = useDesktopSettings();
   const [customUrl, setCustomUrl] = useState('');
-  const [tab, setTab] = useState<'display'|'system'|'about'|'reset'>('display');
+  type TabValue = typeof tabs[number]['value'];
+  const [currentTab, setCurrentTab] = useState<TabValue>(tabs[0].value);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // System Info
@@ -39,28 +63,39 @@ const Settings: React.FC = () => {
     }
   };
 
+  const theme = defaultWindowThemes[mode];
+
+
   return (
     <div className="flex h-full w-full">
-      <div className="w-40 flex flex-col gap-2 border-r p-4 bg-gray-100 dark:bg-gray-900">
-        <button
-          className={`text-left w-full px-3 py-2 rounded justify-start ${tab==='display' ? 'font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900' : 'text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-          onClick={()=>setTab('display')}
-        >Display</button>
-        <button
-          className={`text-left w-full px-3 py-2 rounded justify-start ${tab==='system' ? 'font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900' : 'text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-          onClick={()=>setTab('system')}
-        >System Info</button>
-        <button
-          className={`text-left w-full px-3 py-2 rounded justify-start ${tab==='about' ? 'font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900' : 'text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-          onClick={()=>setTab('about')}
-        >About</button>
-        <button
-          className={`text-left w-full px-3 py-2 rounded justify-start ${tab==='reset' ? 'font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900' : 'text-red-500 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-          onClick={()=>setTab('reset')}
-        >Reset</button>
+      <div className="w-40 flex flex-col font-mono text-[13px] py-1 border-r" style={{backgroundColor: theme.background}}>
+        
+        {tabs.map((tab) => (
+          <button
+            key={tab.value}
+            className={clsx(
+              "text-left w-full px-3 py-2 justify-start",
+              tab.value === currentTab
+                ? "font-bold text-white bg-black"
+                : "text-black hover:text-black/60"
+            )}
+            onClick={()=> setCurrentTab(tab.value)}
+            onMouseEnter={() => {
+              // Only play hover sound if this tab is not currently selected
+              if (tab.value !== currentTab) {
+                fx.play("hover");
+              }
+            }}
+            onMouseDown={() => {
+              if (tab.value !== currentTab) {
+                fx.play("click");
+              }
+            }}
+          >{tab.label}</button>
+        ))}
       </div>
       <div className="flex-1 p-6 overflow-auto">
-        {tab==='display' && (
+        {currentTab==='display' && (
           <div>
             <h2 className="text-lg font-semibold mb-2">Display Settings</h2>
             <div className="mb-4">
@@ -129,7 +164,7 @@ const Settings: React.FC = () => {
             </div>
           </div>
         )}
-        {tab==='system' && (
+        {currentTab==='system' && (
           <div>
             <h2 className="text-lg font-semibold mb-2">System Info</h2>
             <ul className="space-y-1">
@@ -142,7 +177,7 @@ const Settings: React.FC = () => {
             </ul>
           </div>
         )}
-        {tab==='about' && (
+        {currentTab==='about' && (
           <div>
             <h2 className="text-lg font-semibold mb-2">About</h2>
             <p>This is a retro desktop portfolio built with Next.js, Zustand, and Tailwind CSS.</p>
@@ -151,7 +186,7 @@ const Settings: React.FC = () => {
             </div>
           </div>
         )}
-        {tab==='reset' && (
+        {currentTab==='reset' && (
           <div>
             <h2 className="text-lg font-semibold mb-2 text-red-500">Reset Desktop</h2>
             <button className="bg-red-500 text-white px-4 py-2 rounded" onClick={()=>{

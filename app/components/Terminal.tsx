@@ -6,11 +6,11 @@ import { terminalThemes as defaultTerminalThemes, TerminalTheme } from '../lib/t
 import { filesystem } from '../lib/filesystem';
 import { resolvePath } from '../lib/path';
 
-interface TerminalProps {
-  onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; border: string }) => void;
-}
+import { AppProps } from '../lib/apps';
 
-const Terminal: React.FC<TerminalProps> = ({ onThemeChange }) => {
+const Terminal: React.FC<AppProps> = ({ fx, onThemeChange }) => {
+  // fx is available for future use
+  void fx;
   const [history, setHistory] = useState([
     "Welcome to my portfolio!",
     "Type 'help' to see available commands.",
