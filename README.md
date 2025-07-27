@@ -249,3 +249,156 @@ MIT License - Feel free to fork and create your own "found computer" narrative.
 ---
 
 *Status: OFFLINE • Last login: UNKNOWN • System recovering...*
+
+---
+
+# Portfolio
+
+A retro-inspired desktop environment built with Next.js, featuring a blog system with MDX support.
+
+## Features
+
+### Desktop Environment
+- Retro desktop interface with draggable windows
+- Pixelated design aesthetic
+- Terminal emulator
+- Settings panel
+- File system simulation
+
+### Blog System
+- **Separate blog environment** outside the desktop interface
+- **Markdown support** with custom React components
+- **Beautiful typography** using cohesive font system
+- **Responsive design** that works on all devices
+- **Tag system** for organizing posts
+- **Reading time calculation**
+- **SEO optimization** with metadata
+- **Dark/light mode support**
+
+## Getting Started
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Run the development server:
+```bash
+npm run dev
+```
+
+3. Open [http://localhost:3000](http://localhost:3000) to see the portfolio
+4. Visit [http://localhost:3000/blog](http://localhost:3000/blog) to see the blog
+
+## Blog System Usage
+
+### Adding New Blog Posts
+
+1. Create a new `.md` file in the `blogs/` directory
+2. Add frontmatter with post metadata:
+
+```markdown
+---
+title: "Your Post Title"
+date: "2024-01-01"
+excerpt: "A brief description of your post"
+tags: ["tag1", "tag2", "tag3"]
+author: "Your Name"
+coverImage: "/path/to/image.jpg" # optional
+---
+
+# Your Post Content
+
+Write your blog post content here using markdown.
+
+You can also use custom React components:
+
+<Alert type="info">
+This is an info alert component!
+</Alert>
+```
+
+### Available Custom Components
+
+The blog supports several custom components that you can use in your markdown:
+
+#### Alert Component
+```markdown
+<Alert type="info">Info message</Alert>
+<Alert type="warning">Warning message</Alert>
+<Alert type="error">Error message</Alert>
+<Alert type="success">Success message</Alert>
+```
+
+#### Typography
+- Headers (`#`, `##`, `###`) use the Chicago Plain font for cohesiveness
+- Body text uses Geist Sans for readability
+- Code blocks have syntax highlighting
+- Tables are automatically styled
+
+#### Features
+- **Responsive images** with automatic optimization
+- **Code syntax highlighting** for multiple languages
+- **Responsive tables** with horizontal scrolling
+- **Accessible design** with proper contrast and focus states
+
+### Blog Structure
+
+```
+blogs/
+├── welcome-to-my-blog.md
+├── building-with-nextjs-and-mdx.md
+├── design-principles-for-developers.md
+└── your-new-post.md
+```
+
+### Frontmatter Options
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `title` | Yes | Post title |
+| `date` | Yes | Publication date (YYYY-MM-DD) |
+| `excerpt` | Yes | Brief description for listing page |
+| `tags` | No | Array of tags for categorization |
+| `author` | No | Author name |
+| `coverImage` | No | URL to cover image |
+
+## Technology Stack
+
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Utility-first styling
+- **Gray Matter** - Frontmatter parsing
+- **Reading Time** - Automatic reading time calculation
+
+## Design Philosophy
+
+The blog maintains design cohesiveness with the portfolio while being optimized for reading:
+
+- **Headers**: Chicago Plain font (matches desktop aesthetic)
+- **Body**: Geist Sans (optimized for readability)
+- **Code**: Monospace fonts with proper syntax highlighting
+- **Colors**: Consistent with the portfolio's design system
+- **Responsive**: Mobile-first approach with touch-friendly interactions
+
+## Development
+
+The blog system is designed to be:
+- **Performance-focused**: Static generation at build time
+- **SEO-optimized**: Proper metadata and semantic HTML
+- **Accessible**: WCAG-compliant contrast and keyboard navigation
+- **Maintainable**: Clean separation of content and presentation
+
+## Deployment
+
+The blog system works with any Next.js deployment platform:
+- Vercel (recommended)
+- Netlify
+- AWS Amplify
+- Docker containers
+
+Static generation ensures fast loading times and excellent SEO performance.
+
+---
+
+Built with ❤️ and lots of ☕

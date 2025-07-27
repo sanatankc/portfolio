@@ -1,12 +1,21 @@
-module.exports = {
+import typography from '@tailwindcss/typography';
+
+export default {
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     fontFamily: {
-      'mono': ['Chicago Plain', 'monospace', 'Menlo', 'Monaco', 'Consolas', 'Courier New'],
+      'mono': ['Geneva-12', 'Chicago Plain', 'monospace', 'Menlo', 'Monaco', 'Consolas', 'Courier New'],
       'geneva-12': ['Geneva-12', 'sans-serif'],
+      'sans': ['var(--font-satoshi)', 'var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+      'satoshi': ['var(--font-satoshi)', 'system-ui', 'sans-serif'], // Using Inter as Satoshi substitute
+      'inter': ['var(--font-inter)', 'system-ui', 'sans-serif'],
+      'geist': ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+      'source': ['var(--font-source-sans)', 'system-ui', 'sans-serif'],
+      'crimson': ['var(--font-crimson-text)', 'Georgia', 'serif'],
+      'system': ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
     },
     extend: {
       // Pixel border utilities
@@ -85,6 +94,7 @@ module.exports = {
     }
   },
   plugins: [
+    typography,
     function({ addUtilities, matchUtilities, theme }: { 
       addUtilities: (utilities: Record<string, unknown>) => void;
       matchUtilities: (utilities: Record<string, (value: string) => Record<string, unknown>>, options?: { values?: Record<string, string>; type?: string }) => void;
@@ -631,7 +641,7 @@ module.exports = {
             }
           })
         },
-                 {
+         {
            values: theme('colors'),
            type: 'color'
          }
