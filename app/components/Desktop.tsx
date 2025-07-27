@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Window from './Window';
 import Icon from './Icon';
 import { getApps, getApp } from '../lib/apps';
 import { useDesktopSettings } from '../lib/store';
-import { DesktopFxPlayer } from '../lib/fx';
+import { FxPlayer } from '../lib/fx';
 
 interface WindowState {
   id: number;
@@ -17,22 +17,44 @@ interface WindowState {
   zIndex: number;
 }
 
+interface DesktopProps {
+  initialWindows?: string[];
+  fx?: FxPlayer;
+}
+
 let nextId = 1;
 
-const Desktop = () => {
+const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const [windows, setWindows] = useState<WindowState[]>([]);
   const apps = getApps();
-  const fxPlayerRef = useRef<DesktopFxPlayer | null>(null);
 
   console.log('apps...', apps)
   const { wallpaper, mode } = useDesktopSettings();
 
-  // Initialize fx player once
+  // Open initial windows after boot
   useEffect(() => {
-    if (!fxPlayerRef.current) {
-      fxPlayerRef.current = new DesktopFxPlayer();
+    if (initialWindows.length > 0) {
+      initialWindows.forEach((appId, index) => {
+        setTimeout(() => {
+          const app = getApp(appId);
+          if (app) {
+            setWindows(prev => [
+              ...prev,
+              {
+                id: nextId++,
+                appId: appId,
+                x: window.innerWidth * 0.1 + (index * 30),
+                y: window.innerHeight * 0.1 + (index * 30),
+                width: window.innerWidth * 0.6,
+                height: window.innerHeight * 0.6,
+                zIndex: 20 + index,
+              },
+            ]);
+          }
+        }, index * 200); // Stagger window opening
+      });
     }
-  }, []);
+  }, [initialWindows]);
 
   const bgStyle: React.CSSProperties = {};
   if (wallpaper.type === 'color') {
@@ -69,7 +91,7 @@ const Desktop = () => {
   };
 
   const closeWindow = (id: number) => {
-    fxPlayerRef.current?.play("close");
+    fx?.play("close");
     setWindows(windows.filter(w => w.id !== id));
   };
 
@@ -106,7 +128,7 @@ const Desktop = () => {
 
       {windows.map(win => {
         const app = getApp(win.appId);
-        if (!app || !fxPlayerRef.current) return null;
+        if (!app || !fx) return null;
         const AppComponent = app.component;
         return (
           <Window
@@ -122,7 +144,7 @@ const Desktop = () => {
             onDragStop={(x, y) => updateWindowPosition(win.id, x, y)}
             onResizeStop={(width, height, x, y) => updateWindowSize(win.id, width, height, x, y)}
           >
-            <AppComponent fx={fxPlayerRef.current} />
+            <AppComponent fx={fx} />
           </Window>
         );
       })}

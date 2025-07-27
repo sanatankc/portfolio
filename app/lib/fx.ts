@@ -3,6 +3,7 @@ const BUILT_IN_FX = {
   hover: './fx/hover.mp3',
   click: './fx/click.wav',
   close: './fx/close.mp3',
+  type: './fx/type.mp3',
 } as const;
 
 export type FxName = keyof typeof BUILT_IN_FX;
@@ -42,15 +43,26 @@ export class DesktopFxPlayer implements FxPlayer {
   }
 
   play(fxName: FxName): void {
-    // Stop any currently playing audio first
-    if (this.currentlyPlaying) {
-      this.currentlyPlaying.pause();
-      this.currentlyPlaying.currentTime = 0;
-      this.currentlyPlaying = null;
-    }
-
     const audio = this.fx.get(fxName);
     if (audio) {
+      // For typewriter sounds, create a clone to allow overlapping
+      if (fxName === 'type') {
+        const audioClone = audio.cloneNode() as HTMLAudioElement;
+        audioClone.volume = 0.15; // Lower volume for typewriter
+        audioClone.currentTime = 0;
+        audioClone.play().catch(error => {
+          console.warn(`Failed to play fx "${fxName}":`, error);
+        });
+        return;
+      }
+
+      // For other sounds, stop any currently playing audio first
+      if (this.currentlyPlaying) {
+        this.currentlyPlaying.pause();
+        this.currentlyPlaying.currentTime = 0;
+        this.currentlyPlaying = null;
+      }
+
       // Reset to beginning and play
       audio.currentTime = 0;
       this.currentlyPlaying = audio;
