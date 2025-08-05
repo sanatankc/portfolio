@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw';
 import { MediaGallery } from './MediaGallery';
-import 'highlight.js/styles/github-dark.css';
+import "highlight.js/styles/atom-one-dark.css";
 
 interface MarkdownRendererProps {
   content: string;
@@ -156,14 +156,14 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             <li className="font-satoshi text-base md:text-lg leading-relaxed" {...props} />
           ),
           pre: (props: any) => (
-            <pre className="bg-slate-900 dark:bg-slate-950 text-slate-100 p-0 rounded-lg overflow-x-auto border border-slate-200 dark:border-slate-700 font-mono text-sm leading-relaxed my-8" {...props} />
+            <pre className="pixel-corners--wrapper w-full p-2 overflow-x-auto font-mono text-sm leading-relaxed my-2" {...props} />
           ),
           code: (props: any) => {
             if (props.className?.startsWith('language-')) {
               return <code {...props} />;
             }
             return (
-              <code className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-1 rounded font-mono text-sm" {...props} />
+              <code className="bg-red-400 text-slate-800 dark:text-slate-200 px-2 py-1 rounded font-mono text-sm" {...props} />
             );
           },
           strong: (props: any) => (
