@@ -156,7 +156,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             <li className="font-satoshi text-base md:text-lg leading-relaxed" {...props} />
           ),
           pre: (props: any) => (
-            <pre className="pixel-corners--wrapper w-full p-2 overflow-x-auto font-mono text-sm leading-relaxed my-2" {...props} />
+            <pre className="pixel-corners--wrapper w-full p-2 overflow-x-auto font-mono text-sm leading-relaxed my-6" {...props} />
           ),
           code: (props: any) => {
             if (props.className?.startsWith('language-')) {

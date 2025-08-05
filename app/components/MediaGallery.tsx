@@ -78,14 +78,15 @@ export const GlobalImageProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
 interface MediaItem {
   src: string;
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'video-no-autoplay' | 'youtube';
   alt?: string;
+  youtubeId?: string; // For YouTube embeds
 }
 
 interface MediaGalleryProps {
   items: MediaItem[];
   columns?: 1 | 2 | 3;
-  width?: 'content' | 'wide' | 'full';
+  width?: 'content' | 'wide' | 'full' | 'contain';
   className?: string;
   sizing?: 'fixed' | 'auto' | 'aspect-ratio';
   objectFit?: 'cover' | 'contain';
@@ -175,13 +176,26 @@ const MediaModal: React.FC<MediaModalProps> = ({
             alt={currentItem.alt || ''}
             className="max-w-full max-h-[90vh] object-contain"
           />
+        ) : currentItem.type === 'youtube' && currentItem.youtubeId ? (
+          <div className="flex items-center justify-center w-full">
+            <iframe
+              src={`https://www.youtube.com/embed/${currentItem.youtubeId}?autoplay=1&rel=0`}
+              title={currentItem.alt || 'YouTube video'}
+              className="aspect-video"
+              style={{ maxWidth: '80vw', maxHeight: '80vh' }}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         ) : (
           <video
             src={currentItem.src}
             controls
-            autoPlay
+            autoPlay={currentItem.type === 'video'}
             muted
-            loop
+            loop={currentItem.type === 'video'}
+            playsInline
             className="max-w-full max-h-[90vh] object-contain"
           />
         )}
@@ -237,7 +251,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const widthClasses = {
     content: 'my-8', // Normal width within content
     wide: 'media-breakout-wide', // Break out significantly beyond container
-    full: 'media-breakout-full' // Full viewport width breakout
+    full: 'media-breakout-full', // Full viewport width breakout
+    contain: 'my-8' // Contained width within content
   };
 
   const galleryClasses = [
@@ -301,14 +316,32 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 />
               )}
             </div>
+          ) : item.type === 'youtube' && item.youtubeId ? (
+            <div className={containerClass}>
+              <div className="w-full h-full flex items-center justify-center">
+                <iframe
+                  src={`https://www.youtube.com/embed/${item.youtubeId}?rel=0`}
+                  title={item.alt || 'YouTube video'}
+                  className="aspect-video"
+                  style={{ 
+                    width: width === 'content' || width === 'contain' ? '70%' : width === 'wide' ? '90%' : '70%',
+                    maxHeight: '100%'
+                  }}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
           ) : (
             <div className={containerClass}>
               <video
                 src={item.src}
-                autoPlay
+                autoPlay={item.type === 'video'}
                 muted
-                loop
+                loop={item.type === 'video'}
                 playsInline
+                controls={item.type === 'video-no-autoplay'}
                 className={`w-full ${effectiveSizing === 'auto' ? 'h-auto' : 'h-full'} object-${objectFit}`}
               />
             </div>

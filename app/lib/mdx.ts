@@ -15,8 +15,8 @@ export interface BlogPost {
   tags?: string[];
   author?: string;
   coverImage?: string;
-  isMDX?: boolean; // Track if it's an MDX file
-  showIntroduction?: boolean; // Show Introduction section in TOC
+  isMDX?: boolean;
+  showIntroduction?: boolean;
 }
 
 export function getAllPosts(): BlogPost[] {

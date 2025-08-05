@@ -72,9 +72,12 @@ There were so many nuances and edge cases in this process that I can't possibly 
 
 This preprocessing phase was crucial because it transformed chaotic, unstructured data into organized inputs that our AI pipelines could work with reliably. The better the preprocessing, the more accurate our downstream tasks like component extraction and build guide generation became.
 
-## Goose Library and Workflow Mnanagement
+## Goose Library and Workflow Management
 
-**"Goose"** is a TypeScript library I built for defining type-safe, event-driven AI pipelines. It’s designed for building multi-step workflows with structured outputs, robust context management, and event-based orchestration. Goose integrates seamlessly with Vercel’s AI SDK, making it easy to plug into modern AI infrastructure. Here's how it looks:
+
+As our AI pipelines grew more complex, we quickly ran into the limits of off-the-shelf workflow tools. We needed something that could handle multi-step, branching processes, keep track of structured data at every stage, and let us experiment rapidly with new ideas.
+
+That’s why I built **"Goose"**, a TypeScript library for defining event-driven, type-safe AI workflows. Here's how it looks:
 
 ```ts
 const pipeline = goose<{ input: string; result?: string }>(
@@ -94,20 +97,24 @@ const pipeline = goose<{ input: string; result?: string }>(
     variables: (ctx) => ({ summary: ctx.summary })
   });
 ```
-Name comes from step-by-step nature 
-<!-- Add here what exactly to put -->
-<!-- https://github.com/sanatankc/goose -->
-On top of Goose, I built a Pipeline Dashboard for visualizing, resuming, and iterating on workflows. 
 
-[Insert Video here]
+Read more about Goose [here](https://github.com/sanatankc/goose/blob/main/README.md).
 
-The dashboard allows us to:
+On top of Goose, I built a Pipeline Dashboard for visualizing, resuming, and iterating on workflows. See it in action below:
 
-- Create and manage pipelines visually
-- Resume or modify workflows at any step
-- Track progress and debug issues in real time
+<MediaGallery 
+  columns={1} 
+  width="contain"
+  items={[
+    {
+      type: "youtube",
+      youtubeId: "xDbYCKKJ5dc",
+      alt: "Example YouTube video"
+    }
+  ]} 
+/>
 
-This tooling enabled rapid iteration and async collaboration, letting the founder experiment with prompts and workflow changes while I focused on backend scaling and reliability. I plan to open source the Workflow Dashboard as well.
+This tooling enabled rapid iteration and async collaboration, letting the founder experiment with prompts and workflow changes while I focused on backend scaling and reliability.
 
 ## Filtering Projects
 
@@ -128,37 +135,52 @@ To solve this, we designed a multi-stage filtering pipeline, narrowing the datas
   ]} 
 />
 
-
 At each stage, we applied stricter criteria:
 
 
 - First, we checked for the presence of code files, 3D models, or other essential assets, reducing the set to about 30,000.
 - Next, we filtered out tutorials and guides, keeping only actual build projects (~24,000).
 - We then checked if all files needed to replicate the project were present, narrowing it further (~9,000).
-<!-- composite score -->
-- Finally, we applied quality checks and scoring based on novelty, utility, and entertainment, ending up with around 5,000 high-quality projects.
+- Finally, we applied a composite quality score to each project, evaluating them on key attributes like novelty, utility, entertainment, use of AI, and more.
 
-<!-- Here put those attributes like novelty factor, entertainment etc. -->
 This process taught us that even subjective qualities like “project quality” can be broken down into smaller, more objective dimensions. By combining rule-based filters and LLM-powered pipelines, we were able to surface the best projects for our platform.
 
 
 ## Generating Metadata and Standardizing Components
 
-With a curated list of around 5,000 high-quality projects, our next challenge was to enrich them with structured data. This involved two major efforts: generating descriptive metadata for each project and then standardizing that data across the entire platform to make it useful for search, filtering, and recommendations.
-
+With a curated list of around 5,000 high-quality projects, our next challenge was to enrich them with structured data.
 ### Metadata and Component Extraction
 
 For each project, we ran a series of LLM workflows to extract key information.
 
 **1. Project Metadata Generation:**  
-We generated essential descriptive content to help users quickly understand each project. This included a project overview, a "why you'll love this" section, a "how it works" summary, and more. One of the most important outputs was a rich set of **tags**—we aimed for about 30 tags per project, covering everything from technologies used (like "CircuitPython" or "3D Printing") to project purpose ("Home Automation," "Wearable Tech"), theme (e.g., "Halloween"), materials, domain, and discipline. These tags became the backbone of our discovery and recommendation systems.
+
+
+We generated essential descriptive content to help users quickly understand each project. This included a project overview, a "why you'll love this" section, a "how it works" summary, and more. 
+
+<MediaGallery 
+  columns={1} 
+  width="default"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/videos/details-final.mp4",
+      type: "video",
+      alt: "Glitch.house platform overview"
+    }
+  ]} 
+/>
+
+One of the most important outputs was a rich set of **tags**, we aimed for ~30 tags per project, covering everything from technologies used (like "CircuitPython" or "3D Printing") to project purpose ("Home Automation," "Wearable Tech"), theme (e.g., "Halloween"), materials, domain, and discipline. These tags became the backbone of our discovery and recommendation systems.
+
 
 **2. The Component Extraction Pipeline:**  
-Extracting a complete and accurate component list was one of the most complex parts. Components are often mentioned inconsistently across long project guides, and we didn’t want to miss anything—even small items like a paintbrush or, in some cases, water. To solve this, we designed a multi-layer pipeline:
 
-- **Context-Aware Chunking:** We processed the source content chunk by chunk, feeding the list of components found in previous chunks as context to the next. This allowed the LLM to intelligently decide whether to merge a newly found part with an existing one (e.g., updating "Arduino" to "Arduino Uno") or add it as a new item.
-- **Deduplication and Refinement:** After the initial pass, a separate layer deduplicated the list.
-- **Detail Generation:** Another LLM workflow then took this clean list and, chunk by chunk, generated detailed information for each component.
+Extracting a complete and accurate component list was challenging because components are often mentioned inconsistently across long project guides, and we did not want to miss anything, even small items like a paintbrush. To solve this, we designed a multi-layer pipeline:
+
+- **Chunk by chunk:** We processed the source content chunk by chunk, feeding the list of components found in previous chunks as context to the next. This allowed the LLM to intelligently decide whether to merge a newly found part with an existing one (e.g., updating "Arduino" to "Arduino Uno") or add it as a new item.
+- **Merging and cleaning:** After the initial pass, a separate layer deduplicated the list.
+- **Adding details:** Another LLM workflow then took this clean list and, chunk by chunk, generated detailed information for each component.
 - **Grouping:** Finally, a layer grouped components into logical categories (e.g., "Sensors," "Microcontrollers," "Fasteners").
 
 
@@ -203,7 +225,7 @@ Our strategy for this was a hybrid of vector search and LLM-powered logic:
 
 3. **LLM-Powered Merging:** We then sent the primary item and its 20 similar candidates (sorted by a combined metric of frequency and relevancy) to an LLM in batches. The prompt asked it to group the items that were the same and select the best canonical name. This was important, because even though "Raspberry Pi 4" and "Raspberry Pi 3" are very similar, we did not want to merge those.
 
-We repeated this process, layer by layer, starting with the most common items. This allowed us to efficiently standardize the vast majority of our tags and components, creating a clean, reliable dataset for the entire Glitch.house platform.
+We repeated this process, layer by layer, starting with the most common items. This allowed us to efficiently standardize the vast majority of our tags and components, creating a clean, reliable dataset for the platform.
 
 <MediaGallery 
   columns={1} 
@@ -229,7 +251,7 @@ Our goal was to produce detailed, step-by-step build guides for every project, i
 [Build Guide Diagram]
 
 - **Content Chunking and Annotation**  
-We started by breaking down each project’s documentation into smaller content blocks, assigning each an ID and annotating it with metadata—keywords, content type (assembly, intro, promo, etc.), and style cues (humor, directness, etc.). This let us track and organize even the messiest source material.
+We started by breaking down each project’s documentation into smaller content blocks and annotating it with metadata—keywords, content type (assembly, intro, promo, etc.), and author style (humor, directness, etc.). This let us track and organize even the messiest source material.
 
 - **Step and Substep Generation**  
 Next, we used LLMs to analyze the content blocks and generate a logical sequence of steps and substeps. The model could even infer missing steps by analyzing images or code, sometimes surfacing useful instructions that weren’t explicit in the original guide.
@@ -240,7 +262,7 @@ For each step, we generated draft text and used custom markup to link in compone
 - **Style Infusion and Formatting**  
 Finally, we infused the author’s style—tone, signature phrases, and analogies—into the draft, and applied standardized formatting. This made the guides both consistent and true to the original voice.
 <!-- ADD took countless iterationsss -->
-This multi-layered approach allowed us to generate build guides that were standardized, image-rich, and true to the original author’s intent—even when the source material was incomplete or inconsistent. It was by far the hardest part of the pipeline, but also the most satisfying to get right.
+This multi-layered approach allowed us to generate build guides that were standardized, image-rich, and true to the original author’s intent, even when the source material was incomplete or inconsistent. It was by far the hardest part of the pipeline, but also the most satisfying to get right. This process took countless iterations to perfect.
 
 
 <MediaGallery 
@@ -257,12 +279,10 @@ This multi-layered approach allowed us to generate build guides that were standa
 
 ## Recommender System
 
-### How We Matched Users to Projects
-
-Our recommender system connects users to the most relevant DIY projects based on their onboarding choices—like interests, skill level, and components they have. Every project on Glitch.house is tagged with 30+ attributes (tech stack, difficulty, required parts, etc.), and we use these tags to build a profile for both users and projects.
+Our recommender system connects users to the most relevant DIY projects based on their onboarding choices, such as interests, skill level, and available components, by matching these to the tags in our system.
 
 
-When a user signs up, they select their themes, experience, and available hardware. We instantly match this profile to our project database using a content-based approach, prioritizing projects that fit their skills and available components, but also nudging them toward slightly more challenging builds to encourage learning.
+When a user signs up, they select their themes, experience, and available hardware. We instantly match this profile by prioritizing projects that fit their skills and available components, but also nudging them toward slightly more challenging builds to encourage learning.
 
 <MediaGallery 
   columns={1} 
