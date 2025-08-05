@@ -1,4 +1,4 @@
-import typography from '@tailwindcss/typography';
+// import typography from '@tailwindcss/typography';
 
 export default {
   content: [
@@ -94,7 +94,7 @@ export default {
     }
   },
   plugins: [
-    typography,
+    // typography,
     function({ addUtilities, matchUtilities, theme }: { 
       addUtilities: (utilities: Record<string, unknown>) => void;
       matchUtilities: (utilities: Record<string, (value: string) => Record<string, unknown>>, options?: { values?: Record<string, string>; type?: string }) => void;

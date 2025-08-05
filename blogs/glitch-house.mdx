@@ -1,0 +1,314 @@
+---
+title: "Glitch.house: Building an AI-Powered Platform for DIY Hardware Projects"
+date: "2024-01-20"
+excerpt: "Glitch.house started with a simple but ambitious idea: make it easy for anyone to discover, build, and enjoy DIY hardware projects"
+tags: ["nextjs", "ai", "hardware", "platform", "llm"]
+author: "Glitch House Team"
+showIntroduction: true
+---
+
+
+<MediaGallery 
+  columns={1} 
+  width="content"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/videos/glitch-overview.mp4",
+      type: "video"
+    }
+  ]} 
+/>
+
+Glitch.house started with a simple but ambitious idea: make it easy for anyone to discover and build DIY hardware projects. There is a ton of amazing content scattered across the internet, including Instructables, Hackster, Adafruit, various blogs, and YouTube, but it is fragmented, inconsistent, and often overwhelming, especially for beginners. We wanted to create a cohesive platform where:
+
+- Anyone from a complete beginner to an experienced maker could find projects they'd love to build.
+- Every project includes a complete component list, with the option to buy all required parts directly from the project page.
+- Step-by-step guides provide clear instructions, images, wiring diagrams, and all code and files, giving you everything you need and support at every step from start to finish.
+
+Our big bet was that LLMs could help us wrangle all the open-source content into something more structured and useful. When we started, we weren’t sure where we’d end up or what could actually be done reliably at scale. Over time, we figured out how to do effective prompting, structure inputs, and stack layers to get meaningful results. It took a ton of iteration and experimentation to arrive at the solutions that went far beyond what we first imagined. 
+
+Here’s a high-level overview of how our pipeline works:
+
+<MediaGallery 
+  columns={1} 
+  width="full"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/images/main.svg",
+      type: "image",
+      alt: "Glitch.house platform overview"
+    }
+  ]} 
+/>
+
+## Scraping and Preprocessing Phase
+
+The first step was scraping 100,000+ projects from all over the web. This resulted in a huge collection of mixed links and files:
+
+- Each project included a large number of links and files, which I needed to separate and categorize.
+- I grouped files (like images, archives, and code) for downloading and further processing, while links were sorted into categories such as e-commerce, video, and tutorials for specialized handling.
+- This process involved dealing with a wide range of formats and edge cases, requiring custom scripts and different strategies for each type.
+
+Here’s an overview of how we handled scraping and preprocessing:
+
+<MediaGallery 
+  columns={1} 
+  width="full"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/images/scraping-pipeline.svg",
+      type: "image",
+      alt: "Glitch.house platform overview"
+    }
+  ]} 
+/>
+
+There were so many nuances and edge cases in this process that I can't possibly cover them all here. Every part of this workflow was its own massive task. For example, just categorizing all the different types of links and files could have been a project by itself.
+
+<!-- FOR EXAMPLe: When cloning GitHub, what if you have huge repo, sometimes 1GB or 2GB. How do we want to handle those? Do you want to completely skip cloning them? What if the length in the size is just about for assets and there is one or two really important code files that we really want to have in our pre-processing input? Why do you want to skip the entire thing? Or do you want to have at least code structure saved in some way? This is just a GitHub and similar sort of challenge in every other layer. -->
+
+This preprocessing phase was crucial because it transformed chaotic, unstructured data into organized inputs that our AI pipelines could work with reliably. The better the preprocessing, the more accurate our downstream tasks like component extraction and build guide generation became.
+
+## Goose Library and Workflow Mnanagement
+
+**"Goose"** is a TypeScript library I built for defining type-safe, event-driven AI pipelines. It’s designed for building multi-step workflows with structured outputs, robust context management, and event-based orchestration. Goose integrates seamlessly with Vercel’s AI SDK, making it easy to plug into modern AI infrastructure. Here's how it looks:
+
+```ts
+const pipeline = goose<{ input: string; result?: string }>(
+  { input: 'Hello' },
+  { promptBaseDir: './prompts' }
+)
+  .step({
+    name: 'summarize',
+    outputSchema: z.object({ summary: z.string() }),
+    model: yourAIModel,
+    variables: (ctx) => ({ text: ctx.input })
+  })
+  .step({
+    name: 'analyzeSentiment',
+    outputSchema: z.object({ sentiment: z.string() }),
+    model: yourAIModel,
+    variables: (ctx) => ({ summary: ctx.summary })
+  });
+```
+Name comes from step-by-step nature 
+<!-- Add here what exactly to put -->
+<!-- https://github.com/sanatankc/goose -->
+On top of Goose, I built a Pipeline Dashboard for visualizing, resuming, and iterating on workflows. 
+
+[Insert Video here]
+
+The dashboard allows us to:
+
+- Create and manage pipelines visually
+- Resume or modify workflows at any step
+- Track progress and debug issues in real time
+
+This tooling enabled rapid iteration and async collaboration, letting the founder experiment with prompts and workflow changes while I focused on backend scaling and reliability. I plan to open source the Workflow Dashboard as well.
+
+## Filtering Projects
+
+After scraping and preprocessing, we still had a massive dataset—about 100,000 projects. The next challenge was to filter this down to only the highest quality, reproducible builds. Manual review was out of the question, and simple filters like tags or popularity weren’t enough. Many popular projects were just basic tutorials or lacked the depth and completeness we wanted.
+
+To solve this, we designed a multi-stage filtering pipeline, narrowing the dataset at each step.
+
+<MediaGallery 
+  columns={1} 
+  width="default"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/images/filterFunnel.jpg",
+      type: "image",
+      alt: "Glitch.house platform overview"
+    }
+  ]} 
+/>
+
+At each stage, we applied stricter criteria:
+
+
+- First, we checked for the presence of code files, 3D models, or other essential assets, reducing the set to about 30,000.
+- Next, we filtered out tutorials and guides, keeping only actual build projects (~24,000).
+- We then checked if all files needed to replicate the project were present, narrowing it further (~9,000).
+<!-- composite score -->
+- Finally, we applied quality checks and scoring based on novelty, utility, and entertainment, ending up with around 5,000 high-quality projects.
+
+<!-- Here put those attributes like novelty factor, entertainment etc. -->
+This process taught us that even subjective qualities like “project quality” can be broken down into smaller, more objective dimensions. By combining rule-based filters and LLM-powered pipelines, we were able to surface the best projects for our platform.
+
+
+## Generating Metadata and Standardizing Components
+
+With a curated list of around 5,000 high-quality projects, our next challenge was to enrich them with structured data. This involved two major efforts: generating descriptive metadata for each project and then standardizing that data across the entire platform to make it useful for search, filtering, and recommendations.
+
+### Metadata and Component Extraction
+
+For each project, we ran a series of LLM workflows to extract key information.
+
+**1. Project Metadata Generation:**  
+We generated essential descriptive content to help users quickly understand each project. This included a project overview, a "why you'll love this" section, a "how it works" summary, and more. One of the most important outputs was a rich set of **tags**—we aimed for about 30 tags per project, covering everything from technologies used (like "CircuitPython" or "3D Printing") to project purpose ("Home Automation," "Wearable Tech"), theme (e.g., "Halloween"), materials, domain, and discipline. These tags became the backbone of our discovery and recommendation systems.
+
+**2. The Component Extraction Pipeline:**  
+Extracting a complete and accurate component list was one of the most complex parts. Components are often mentioned inconsistently across long project guides, and we didn’t want to miss anything—even small items like a paintbrush or, in some cases, water. To solve this, we designed a multi-layer pipeline:
+
+- **Context-Aware Chunking:** We processed the source content chunk by chunk, feeding the list of components found in previous chunks as context to the next. This allowed the LLM to intelligently decide whether to merge a newly found part with an existing one (e.g., updating "Arduino" to "Arduino Uno") or add it as a new item.
+- **Deduplication and Refinement:** After the initial pass, a separate layer deduplicated the list.
+- **Detail Generation:** Another LLM workflow then took this clean list and, chunk by chunk, generated detailed information for each component.
+- **Grouping:** Finally, a layer grouped components into logical categories (e.g., "Sensors," "Microcontrollers," "Fasteners").
+
+
+<MediaGallery 
+  columns={2} 
+  width="wide"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/images/parts-1.webp",
+      type: "image"
+    },
+    {
+      src: "/blog/images/parts-2.webp",
+      type: "image"
+    }
+  ]} 
+/>
+
+### The Standardization Challenge: Merging Tags and Components
+
+After processing all 5,000 projects, we were left with a massive but messy dataset: thousands of unique component names and tags, many of which were just slight variations of each other (e.g., "Raspberry Pi 4," "RPi 4," "Raspberry Pi 4 Model B"). To make the data truly useful, we had to merge these variations into single, canonical entities.
+
+Our strategy for this was a hybrid of vector search and LLM-powered logic:
+
+1. **Sort by Frequency:** We started by sorting all unique components and tags by how often they appeared across the platform.
+2. **Find Similar Candidates:** For each high-frequency item (like "Arduino Uno"), we used vector embeddings to find the top 20 most similar items based on cosine similarity. This gave us a list of potential duplicates.
+   
+
+<MediaGallery 
+  columns={1} 
+  width="default"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/images/componentsEmbedding.png",
+      type: "image",
+      alt: "Glitch.house platform overview"
+    }
+  ]} 
+/>
+
+3. **LLM-Powered Merging:** We then sent the primary item and its 20 similar candidates (sorted by a combined metric of frequency and relevancy) to an LLM in batches. The prompt asked it to group the items that were the same and select the best canonical name. This was important, because even though "Raspberry Pi 4" and "Raspberry Pi 3" are very similar, we did not want to merge those.
+
+We repeated this process, layer by layer, starting with the most common items. This allowed us to efficiently standardize the vast majority of our tags and components, creating a clean, reliable dataset for the entire Glitch.house platform.
+
+<MediaGallery 
+  columns={1} 
+  width="content"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/images/filters.webp",
+      type: "image"
+    }
+  ]} 
+/>
+
+
+## Build Guide Generation
+
+Generating high-quality build guides was one of the most complex and interesting parts of the pipeline. Source documentation ranged from extremely detailed to barely usable, and we wanted every project to have a clear, complete, and engaging guide—regardless of the original quality.
+
+Our goal was to produce detailed, step-by-step build guides for every project, including all resources, components, files, and images, while preserving the unique style and personality of each original author.
+
+### The Approach
+
+[Build Guide Diagram]
+
+- **Content Chunking and Annotation**  
+We started by breaking down each project’s documentation into smaller content blocks, assigning each an ID and annotating it with metadata—keywords, content type (assembly, intro, promo, etc.), and style cues (humor, directness, etc.). This let us track and organize even the messiest source material.
+
+- **Step and Substep Generation**  
+Next, we used LLMs to analyze the content blocks and generate a logical sequence of steps and substeps. The model could even infer missing steps by analyzing images or code, sometimes surfacing useful instructions that weren’t explicit in the original guide.
+
+- **Drafting and Asset Linking**  
+For each step, we generated draft text and used custom markup to link in components, images, wiring diagrams, and files. This ensured that every asset was referenced in the right place, and nothing important was left out.
+
+- **Style Infusion and Formatting**  
+Finally, we infused the author’s style—tone, signature phrases, and analogies—into the draft, and applied standardized formatting. This made the guides both consistent and true to the original voice.
+<!-- ADD took countless iterationsss -->
+This multi-layered approach allowed us to generate build guides that were standardized, image-rich, and true to the original author’s intent—even when the source material was incomplete or inconsistent. It was by far the hardest part of the pipeline, but also the most satisfying to get right.
+
+
+<MediaGallery 
+  columns={1} 
+  width="content"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/videos/build-final.mp4",
+      type: "video"
+    }
+  ]} 
+/>
+
+## Recommender System
+
+### How We Matched Users to Projects
+
+Our recommender system connects users to the most relevant DIY projects based on their onboarding choices—like interests, skill level, and components they have. Every project on Glitch.house is tagged with 30+ attributes (tech stack, difficulty, required parts, etc.), and we use these tags to build a profile for both users and projects.
+
+
+When a user signs up, they select their themes, experience, and available hardware. We instantly match this profile to our project database using a content-based approach, prioritizing projects that fit their skills and available components, but also nudging them toward slightly more challenging builds to encourage learning.
+
+<MediaGallery 
+  columns={1} 
+  width="content"
+  objectFit="contain"
+  items={[
+    {
+      src: "/blog/videos/ob-final.mp4",
+      type: "video"
+    }
+  ]} 
+/>
+
+### Under the Hood
+
+To keep recommendations fast and scalable, we used a mix of smart data structures and modern infra:
+- **Inverted indexes** for instant tag and component lookups.
+- **Pre-computed similarity matrices** for common user-project matches.
+- **Approximate Nearest Neighbor (ANN) search** (via Pinecone) for real-time vector similarity at scale.
+- **Redis caching** for hot recommendations and session data.
+
+All of this keeps response times under 100ms, even with thousands of projects and users. The system also adapts as users interact, refining recommendations based on what they actually click and build. The result: every user gets a personalized, up-to-date feed of projects they’ll actually want to build.
+
+<Alert type="info">
+We did all this with a tiny team: I led three frontend interns while working hands-on with the backend and AI, collaborating closely with the founder who led prompt engineering and product. Working this way taught me how to actually "vibe code," move fast while maintaining code standards to keep me sane building such a complicated product. glitch.house is launching soon on iOS, Android & Web.
+
+</Alert>
+
+## Bonus: We built a Poetry Camera 📸
+
+Poetry camera by kelin was a huge inspiration. The moment we saw it, we knew we had to build one from scratch! We spent New Year's weekend learning everything firsthand from the joy of a successful solder to the frustration of a missing part. It was such a fun, fulfilling build, and every lesson made Glitch House a better, more thoughtful product.
+
+<MediaGallery 
+  columns={3} 
+  width="wide"
+  items={[
+    {
+      src: "/blog/images/poetry-camera-pic.webp",
+      type: "image"
+    },
+    {
+      src: "/blog/images/poetry-camera-bill.webp",
+      type: "image"
+    },
+    {
+      src: "/blog/images/bill-2.webp",
+      type: "image"
+    }
+  ]} 
+/>

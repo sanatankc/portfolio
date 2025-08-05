@@ -15,42 +15,46 @@ export interface BlogPost {
   tags?: string[];
   author?: string;
   coverImage?: string;
+  isMDX?: boolean; // Track if it's an MDX file
+  showIntroduction?: boolean; // Show Introduction section in TOC
 }
 
-// This will run at build time for static generation
 export function getAllPosts(): BlogPost[] {
   try {
+    // Ensure the blogs directory exists
     if (!fs.existsSync(blogsDirectory)) {
-      // Create directory if it doesn't exist
       fs.mkdirSync(blogsDirectory, { recursive: true });
       return [];
     }
 
     const fileNames = fs.readdirSync(blogsDirectory);
     const allPostsData = fileNames
-      .filter((fileName) => fileName.endsWith('.md') || fileName.endsWith('.mdx'))
-      .map((fileName) => {
+      .filter(fileName => fileName.endsWith('.md') || fileName.endsWith('.mdx'))
+      .map(fileName => {
         const slug = fileName.replace(/\.(md|mdx)$/, '');
         const fullPath = path.join(blogsDirectory, fileName);
         const fileContents = fs.readFileSync(fullPath, 'utf8');
-        const { data, content } = matter(fileContents);
-        const readTime = readingTime(content);
+        const matterResult = matter(fileContents);
+        const readingTimeResult = readingTime(matterResult.content);
 
         return {
           slug,
-          title: data.title || 'Untitled',
-          date: data.date || new Date().toISOString(),
-          excerpt: data.excerpt || content.slice(0, 160) + '...',
-          content,
-          readingTime: readTime.text,
-          tags: data.tags || [],
-          author: data.author,
-          coverImage: data.coverImage,
-        } as BlogPost;
-      })
-      .sort((a, b) => (new Date(b.date).getTime() - new Date(a.date).getTime()));
+          title: matterResult.data.title || 'Untitled',
+          date: matterResult.data.date || new Date().toISOString(),
+          excerpt: matterResult.data.excerpt || '',
+          content: matterResult.content,
+          readingTime: readingTimeResult.text,
+          tags: matterResult.data.tags || [],
+          author: matterResult.data.author,
+          coverImage: matterResult.data.coverImage,
+          isMDX: fileName.endsWith('.mdx'),
+          showIntroduction: matterResult.data.showIntroduction || false,
+        };
+      });
 
-    return allPostsData;
+    return allPostsData.sort((a, b) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
   } catch (error) {
     console.error('Error reading blog posts:', error);
     return [];
@@ -59,42 +63,38 @@ export function getAllPosts(): BlogPost[] {
 
 export function getPostBySlug(slug: string): BlogPost | null {
   try {
-    if (!fs.existsSync(blogsDirectory)) {
-      return null;
-    }
-
-    const possibleFiles = [`${slug}.md`, `${slug}.mdx`];
-    let fullPath: string | null = null;
+    // Try both .md and .mdx extensions
+    let fullPath = path.join(blogsDirectory, `${slug}.mdx`);
+    let isMDX = true;
     
-    for (const fileName of possibleFiles) {
-      const testPath = path.join(blogsDirectory, fileName);
-      if (fs.existsSync(testPath)) {
-        fullPath = testPath;
-        break;
+    if (!fs.existsSync(fullPath)) {
+      fullPath = path.join(blogsDirectory, `${slug}.md`);
+      isMDX = false;
+      
+      if (!fs.existsSync(fullPath)) {
+        return null;
       }
     }
 
-    if (!fullPath) {
-      return null;
-    }
-
     const fileContents = fs.readFileSync(fullPath, 'utf8');
-    const { data, content } = matter(fileContents);
-    const readTime = readingTime(content);
+    const matterResult = matter(fileContents);
+    const readingTimeResult = readingTime(matterResult.content);
 
     return {
       slug,
-      title: data.title || 'Untitled',
-      date: data.date || new Date().toISOString(),
-      excerpt: data.excerpt || content.slice(0, 160) + '...',
-      content,
-      readingTime: readTime.text,
-      tags: data.tags || [],
-      author: data.author,
-      coverImage: data.coverImage,
+      title: matterResult.data.title || 'Untitled',
+      date: matterResult.data.date || new Date().toISOString(),
+      excerpt: matterResult.data.excerpt || '',
+      content: matterResult.content,
+      readingTime: readingTimeResult.text,
+      tags: matterResult.data.tags || [],
+      author: matterResult.data.author,
+      showIntroduction: matterResult.data.showIntroduction || false,
+      coverImage: matterResult.data.coverImage,
+      isMDX,
     };
   } catch (error) {
-    console.error(`Error reading post ${slug}:`, error);
+    console.error(`Error reading blog post ${slug}:`, error);
     return null;
   }
 } 

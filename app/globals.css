@@ -2,6 +2,41 @@
 @import "../node_modules/@hackernoon/pixel-icon-library/fonts/iconfont.css";
 @config "../tailwind.config.ts";
 
+/* @import url('./fonts/chicago.css');
+@import url('./fonts/geneva-12.css'); */
+
+/* Add Hackernoon Icons */
+/* @import url('https://cdn.hackernoon.com/hackernoon-icons/hn-icons.css'); */
+
+/* Media Gallery Breakout Styles */
+.media-breakout-wide {
+  width: calc(100vw - 4rem);
+  margin-left: calc(-50vw + 50% + 2rem);
+  margin-right: calc(-50vw + 50% + 2rem);
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  max-width: none;
+  position: relative;
+}
+
+.media-breakout-full {
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  max-width: none;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .media-breakout-wide {
+    width: calc(100vw - 8rem);
+    margin-left: calc(-50vw + 50% + 4rem);
+    margin-right: calc(-50vw + 50% + 4rem);
+  }
+}
+
 @font-face {
   font-family: 'Chicago Plain';
   src: url('./fonts/Chicago.woff') format('woff');
@@ -12,10 +47,72 @@
   src: url('./fonts/geneva-12.otf') format('opentype');
 }
 
+
 body {
-  background-color: #000;
-  color: #fff;
-  font-family: 'Geneva-12', sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: 'Geneva-12', 'Chicago Plain', monospace;
+  overflow-x: hidden;
+}
+
+/* Noise background for blog pages */
+.blog-noise-bg {
+  background-image: url('/assets/noise.png');
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  opacity: 0.3;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* z-index: -1; */
+}
+
+@media (prefers-color-scheme: dark) {
+  .blog-noise-bg {
+    filter: invert(1);
+  }
+}
+
+/* Media gallery styles */
+.media-gallery-1 {
+  @apply grid grid-cols-1 gap-6 my-8;
+}
+
+.media-gallery-2 {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-6 my-8;
+}
+
+.media-gallery-3 {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-8;
+}
+
+.media-gallery-wide {
+  @apply w-full my-12 -mx-4 md:-mx-8;
+  max-width: calc(100vw - 2rem);
+}
+
+@media (min-width: 768px) {
+  .media-gallery-wide {
+    max-width: calc(100vw - 4rem);
+  }
+}
+
+/* Modal overlay */
+.modal-overlay {
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Image/video transitions */
+.media-item {
+  @apply transition-all duration-300 cursor-pointer;
+}
+
+.media-item:hover {
+  @apply transform scale-105 shadow-2xl;
 }
 
 .title-bar-stripes {
