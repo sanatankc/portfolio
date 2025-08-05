@@ -69,7 +69,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <main className="max-w-4xl mx-auto px-6 py-12">
           <header className="mb-12">
             <div>
-              <div className="flex items justify-start gap-6 text-slate-600 dark:text-slate-400 mb-3 font-satoshi">
+              <div className="flex items justify-start gap-3 text-slate-600 dark:text-slate-400 mb-3 font-satoshi">
                 <time dateTime={post.date}>
                   {new Date(post.date).toLocaleDateString('en-US', {
                     year: 'numeric',
