@@ -15,10 +15,13 @@ interface WindowState {
   width: number;
   height: number;
   zIndex: number;
+  payload?: unknown;
 }
 
+type InitialWindow = string | { appId: string; payload?: unknown };
+
 interface DesktopProps {
-  initialWindows?: string[];
+  initialWindows?: InitialWindow[];
   fx?: FxPlayer;
 }
 
@@ -34,20 +37,25 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   // Open initial windows after boot
   useEffect(() => {
     if (initialWindows.length > 0) {
-      initialWindows.forEach((appId, index) => {
+      initialWindows.forEach((entry, index) => {
+        const appId = typeof entry === 'string' ? entry : entry.appId;
+        const payload = typeof entry === 'string' ? undefined : entry.payload;
         setTimeout(() => {
           const app = getApp(appId);
           if (app) {
+            const widthRatio = app.defaultWindow?.widthRatio ?? 0.6;
+            const heightRatio = app.defaultWindow?.heightRatio ?? 0.6;
             setWindows(prev => [
               ...prev,
               {
                 id: nextId++,
-                appId: appId,
+                appId,
                 x: window.innerWidth * 0.1 + (index * 30),
                 y: window.innerHeight * 0.1 + (index * 30),
-                width: window.innerWidth * 0.6,
-                height: window.innerHeight * 0.6,
+                width: Math.max(360, window.innerWidth * widthRatio),
+                height: Math.max(260, window.innerHeight * heightRatio),
                 zIndex: 20 + index,
+                payload,
               },
             ]);
           }
@@ -72,9 +80,12 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     bgStyle.color = '#222';
   }
 
-  const openApp = (appId: string) => {
+  const openApp = (appId: string, payload?: unknown) => {
     const app = getApp(appId);
     if (!app) return;
+
+    const widthRatio = app.defaultWindow?.widthRatio ?? 0.8;
+    const heightRatio = app.defaultWindow?.heightRatio ?? 0.8;
 
     setWindows([
       ...windows,
@@ -83,9 +94,10 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
         appId: appId,
         x: window.innerWidth * 0.1,
         y: window.innerHeight * 0.1,
-        width: window.innerWidth * 0.8,
-        height: window.innerHeight * 0.8,
+        width: Math.max(360, window.innerWidth * widthRatio),
+        height: Math.max(260, window.innerHeight * heightRatio),
         zIndex: Math.max(getHighestZIndex() + 1, 20),
+        payload,
       },
     ]);
   };
@@ -144,7 +156,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
             onDragStop={(x, y) => updateWindowPosition(win.id, x, y)}
             onResizeStop={(width, height, x, y) => updateWindowSize(win.id, width, height, x, y)}
           >
-            <AppComponent fx={fx} />
+            <AppComponent fx={fx} openApp={openApp} payload={win.payload} />
           </Window>
         );
       })}

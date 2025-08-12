@@ -35,7 +35,16 @@ export default function Home() {
       {/* Desktop Interface */}
       {showDesktop && (
         <div className={`transition-opacity duration-1000 ${showDesktop ? 'opacity-100' : 'opacity-0'}`}>
-          <Desktop initialWindows={['terminal', 'chat']} fx={fxPlayerRef.current || undefined} />
+          <Desktop
+            initialWindows={[
+              'terminal',
+              'chat',
+              { appId: 'notes', payload: { notes: [
+                { id: 'glitch', title: 'glitch.app', content: `This is my recent project.\n\n- Open the blog inside OS: <a href=\"/blog/glitch-house\">Open in Browser App</a>\n- Open in new tab: <a href=\"/blog/glitch-house\" target=\"_blank\" rel=\"noopener noreferrer\">glitch.house blog</a>` },
+              ] } }
+            ]}
+            fx={fxPlayerRef.current || undefined}
+          />
         </div>
       )}
     </main>
