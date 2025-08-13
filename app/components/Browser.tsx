@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { AppProps } from '@/app/lib/apps';
+import Button from '@/app/components/ui/Button';
+import Input from '@/app/components/ui/Input';
 
 interface BrowserPayload { url?: string }
 
@@ -34,9 +36,9 @@ const Browser: React.FC<AppProps> = ({ fx, payload }) => {
   return (
     <div className="w-full h-full flex flex-col bg-white">
       <div className="flex items-center gap-2 p-2 border-b border-slate-200">
-        <input
+        <Input
           ref={inputRef}
-          className="flex-1 px-2 py-1 border border-slate-300 rounded text-sm"
+          className="flex-1"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => {
@@ -44,8 +46,8 @@ const Browser: React.FC<AppProps> = ({ fx, payload }) => {
           }}
           placeholder="Enter URL (e.g., /blog/glitch-house)"
         />
-        <button className="px-2 py-1 text-sm border border-slate-300 rounded" onClick={() => go(url)}>Go</button>
-        <button className="px-2 py-1 text-sm border border-slate-300 rounded" onClick={openNewTab}>Open in new tab</button>
+        <Button size="sm" variant="primary" onClick={() => go(url)}>Go</Button>
+        <Button size="sm" variant="secondary" onClick={openNewTab}>Open in new tab</Button>
       </div>
       <div className="flex-1 overflow-hidden">
         <iframe title="browser" src={url} className="w-full h-full" />

@@ -12,13 +12,16 @@ import Browser from '../components/Browser';
 import FileBrowserIcon from '../components/FileBrowserIcon';
 import NotesIcon from '../components/NotesIcon';
 import BrowserIcon from '../components/BrowserIcon';
+import { defaultWindowThemes } from './themes';
 
 export interface AppProps {
   fx: FxPlayer;
-  // Provided by Window
-  onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; closeButtonText?: string; border: string }) => void;
   // Provided by Desktop so apps can open other apps or spawn new windows
-  openApp: (appId: string, payload?: unknown) => void;
+  openApp: (appId: string, payload?: unknown) => number | void;
+  // Allow apps to set their window title dynamically
+  setWindowTitle?: (title: string) => void;
+  // Allow an app window to close itself
+  closeSelf?: () => void;
   // Optional per-window data
   payload?: unknown;
 }
@@ -32,6 +35,10 @@ export interface App {
   defaultWindow?: {
     widthRatio?: number; // 0..1
     heightRatio?: number; // 0..1
+    // Optional default background opacity for this app's window (1 = opaque)
+    opacity?: number;
+    // Optional explicit window theme override per app
+    theme?: typeof defaultWindowThemes.dark;
   };
 }
 
@@ -59,14 +66,14 @@ const apps: App[] = [
     name: 'Files',
     component: FileBrowser as React.FC<AppProps>,
     icon: FileBrowserIcon,
-    defaultWindow: { widthRatio: 0.5, heightRatio: 0.5 },
+    defaultWindow: { widthRatio: 0.5, heightRatio: 0.5, opacity: 1 },
   },
   {
     id: 'notes',
     name: 'Notes',
     component: Notes as React.FC<AppProps>,
     icon: NotesIcon,
-    defaultWindow: { widthRatio: 0.5, heightRatio: 0.5 },
+    defaultWindow: { widthRatio: 0.5, heightRatio: 0.5, opacity: 0.9 },
   },
   {
     id: 'browser',

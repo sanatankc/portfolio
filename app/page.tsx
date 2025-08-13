@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import Desktop from './components/Desktop';
 import BootScreen from './components/BootScreen';
 import { DesktopFxPlayer } from './lib/fx';
@@ -15,13 +15,13 @@ export default function Home() {
     fxPlayerRef.current = new DesktopFxPlayer();
   }
 
-  const handleBootComplete = () => {
+  const handleBootComplete = useCallback(() => {
     setIsBooting(false);
     // Small delay for smooth transition
     setTimeout(() => {
       setShowDesktop(true);
-    }, 300);
-  };
+    }, 100);
+  }, []);
 
   return (
     <main className="min-h-screen relative">
@@ -37,11 +37,9 @@ export default function Home() {
         <div className={`transition-opacity duration-1000 ${showDesktop ? 'opacity-100' : 'opacity-0'}`}>
           <Desktop
             initialWindows={[
-              'terminal',
-              'chat',
-              { appId: 'notes', payload: { notes: [
-                { id: 'glitch', title: 'glitch.app', content: `This is my recent project.\n\n- Open the blog inside OS: <a href=\"/blog/glitch-house\">Open in Browser App</a>\n- Open in new tab: <a href=\"/blog/glitch-house\" target=\"_blank\" rel=\"noopener noreferrer\">glitch.house blog</a>` },
-              ] } }
+              // 'terminal',
+              // 'chat',
+              { appId: 'notes', payload: { path: ['~','whoami.notes'] } }
             ]}
             fx={fxPlayerRef.current || undefined}
           />

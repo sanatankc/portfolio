@@ -54,6 +54,7 @@ const cat: CommandFunction = async ({ args, currentPath, filesystem, addToHistor
 
   if (file) {
     if (typeof file === 'string') {
+      // Render simple line breaks and allow minimal HTML in notes
       addToHistory(file.replace(/\n/g, '<br/>'));
     } else {
       addToHistory(`${filename}: is a directory`);

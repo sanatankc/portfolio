@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FxPlayer } from '../lib/fx';
 
 interface BootLine {
@@ -57,10 +57,21 @@ const BOOT_SEQUENCE: BootLine[] = [
   { text: "Entering shell...", type: 'info' }
 ];
 
+// Timing constants (precomputed to avoid effect dependency churn)
+const BOOT_COMPLETE_TIME = 100; // ms
+const TYPING_PHASE_TIME = BOOT_COMPLETE_TIME * 0.8;
+const BOOT_TOTAL_CHARS = BOOT_SEQUENCE.reduce((sum: number, line: BootLine) => sum + line.text.length, 0);
+const TIME_PER_CHAR = (TYPING_PHASE_TIME * 0.7) / BOOT_TOTAL_CHARS;
+const TIME_PER_LINE_PAUSE = (TYPING_PHASE_TIME * 0.25) / BOOT_SEQUENCE.length;
+const GLITCH_DURATION = TYPING_PHASE_TIME * 0.08;
+const FINAL_DELAY = BOOT_COMPLETE_TIME * 0.02;
+const BOOTING_UP_DURATION = BOOT_COMPLETE_TIME * 0.3; // 20% of total boot time
+
 const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
-  // Configuration: Total boot time in milliseconds
-  const boot_complete_time = 2500;
-  
+  // Fx ref to keep effect deps stable
+  const fxRef = useRef(fx);
+  useEffect(() => { fxRef.current = fx; }, [fx]);
+
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [displayedLines, setDisplayedLines] = useState<string[]>([]);
@@ -70,14 +81,6 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
   const [progress, setProgress] = useState(0);
   const [isBootingUp, setIsBootingUp] = useState(false);
   const [bootingUpProgress, setBootingUpProgress] = useState(0);
-
-  // Calculate timing based on boot_complete_time
-  const typingPhaseTime = boot_complete_time * 0.8;
-  const totalChars = BOOT_SEQUENCE.reduce((sum: number, line: BootLine) => sum + line.text.length, 0);
-  const timePerChar = (typingPhaseTime * 0.7) / totalChars;
-  const timePerLinePause = (typingPhaseTime * 0.25) / BOOT_SEQUENCE.length;
-  const glitchDuration = typingPhaseTime * 0.08;
-  const finalDelay = boot_complete_time * 0.02;
 
   // Cursor blinking effect
   useEffect(() => {
@@ -123,7 +126,7 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
         setCurrentLineIndex(prev => prev + 1);
         setCurrentCharIndex(0);
         setIsGlitching(false);
-      }, glitchDuration);
+      }, GLITCH_DURATION);
       return;
     }
 
@@ -150,12 +153,12 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
         
         // Play typewriter sound for visible characters
         const currentChar = currentLine[currentCharIndex];
-        if (fx && currentChar && currentChar !== ' ' && Math.random() > 0.3) {
-          fx.play('type');
+        if (fxRef.current && currentChar && currentChar !== ' ' && Math.random() > 0.3) {
+          fxRef.current.play('type');
         }
         
         setCurrentCharIndex(prev => prev + 1);
-      }, timePerChar + (Math.random() * timePerChar * 0.5));
+      }, TIME_PER_CHAR + (Math.random() * TIME_PER_CHAR * 0.5));
 
       return () => clearTimeout(typeTimer);
     } else {
@@ -163,19 +166,18 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
       const lineCompleteTimer = setTimeout(() => {
         setCurrentLineIndex(prev => prev + 1);
         setCurrentCharIndex(0);
-      }, timePerLinePause + (Math.random() * timePerLinePause * 0.5));
+      }, TIME_PER_LINE_PAUSE + (Math.random() * TIME_PER_LINE_PAUSE * 0.5));
 
       return () => clearTimeout(lineCompleteTimer);
     }
-  }, [currentLineIndex, currentCharIndex, onBootComplete, finalDelay, fx, glitchDuration, timePerChar, timePerLinePause, isBootingUp]);
+  }, [currentLineIndex, currentCharIndex, isBootingUp]);
 
   // Handle booting up phase (20% of total boot time)
   useEffect(() => {
     if (!isBootingUp) return;
 
-    const bootingUpDuration = boot_complete_time * 0.3; // 20% of total boot time
     const progressInterval = 100; // Update every 100ms
-    const totalSteps = bootingUpDuration / progressInterval;
+    const totalSteps = BOOTING_UP_DURATION / progressInterval;
     let currentStep = 0;
 
     const progressTimer = setInterval(() => {
@@ -201,12 +203,12 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
         // Complete the boot sequence
         setTimeout(() => {
           onBootComplete();
-        }, finalDelay);
+        }, FINAL_DELAY);
       }
     }, progressInterval);
 
     return () => clearInterval(progressTimer);
-  }, [isBootingUp, onBootComplete, finalDelay, boot_complete_time]);
+  }, [isBootingUp, onBootComplete]);
 
   // Random glitch effect
   useEffect(() => {
@@ -291,7 +293,7 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
       </div>
 
       {/* Additional atmospheric elements */}
-      <div className="absolute top-4 right-8 text-xs text-green-600 opacity-40 relative z-10">
+      <div className="absolute top-4 right-8 text-xs text-green-600 opacity-40 z-10">
         <div>BUILD: 20240101.0003</div>
         <div>ARCH: x86_64</div>
         <div className="mt-2">

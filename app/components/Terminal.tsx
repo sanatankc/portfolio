@@ -3,12 +3,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { commands, CommandContext } from '../lib/commands';
 import { terminalThemes as defaultTerminalThemes, TerminalTheme } from '../lib/themes';
-import { filesystem } from '../lib/filesystem';
+import { useFilesystem } from '../lib/filesystem';
 import { resolvePath } from '../lib/path';
 
 import { AppProps } from '../lib/apps';
 
-const Terminal: React.FC<AppProps> = ({ fx, onThemeChange }) => {
+const Terminal: React.FC<AppProps> = ({ fx }) => {
   // fx is available for future use
   void fx;
   const [history, setHistory] = useState([
@@ -19,6 +19,7 @@ const Terminal: React.FC<AppProps> = ({ fx, onThemeChange }) => {
   const [themes, setThemes] = useState(defaultTerminalThemes);
   const [currentTheme, setCurrentTheme] = useState<TerminalTheme>(defaultTerminalThemes.dark);
   const [currentPath, setCurrentPath] = useState(['~']);
+  const { fs } = useFilesystem();
   const [isExecuting, setIsExecuting] = useState(false);
   const [promptState, setPromptState] = useState<{
     question?: string;
@@ -29,19 +30,7 @@ const Terminal: React.FC<AppProps> = ({ fx, onThemeChange }) => {
   const endOfHistoryRef = useRef<null | HTMLDivElement>(null);
   const inputRef = useRef<null | HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (
-      onThemeChange &&
-      currentTheme &&
-      currentTheme.window &&
-      currentTheme.window.background &&
-      currentTheme.window.foreground &&
-      currentTheme.window.closeButton &&
-      currentTheme.window.border
-    ) {
-      onThemeChange(currentTheme.window);
-    }
-  }, [currentTheme, onThemeChange]);
+  // Window chrome/theme is now controlled by Desktop via app definitions; Terminal no longer mutates it.
 
   const addToHistory = (line: string | string[]) => {
     setHistory(prev => [...prev, ...(Array.isArray(line) ? line : [line])]);
@@ -101,7 +90,7 @@ const Terminal: React.FC<AppProps> = ({ fx, onThemeChange }) => {
                 args,
                 themes,
                 currentPath,
-                filesystem,
+                filesystem: fs,
                 addToHistory,
                 clearHistory,
                 prompt,
@@ -111,7 +100,7 @@ const Terminal: React.FC<AppProps> = ({ fx, onThemeChange }) => {
             };
 
             if (commandName === 'cd') {
-                 const { newPath, error } = resolvePath(args[0] || '~', currentPath, filesystem);
+                 const { newPath, error } = resolvePath(args[0] || '~', currentPath, fs);
                 if (error) {
                     addToHistory(error);
                 } else {

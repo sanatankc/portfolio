@@ -17,6 +17,10 @@ interface WindowProps {
   onDragStop: (x: number, y: number) => void;
   onResizeStop: (width: number, height: number, x: number, y: number) => void;
   children: React.ReactElement;
+  // Optional per-window background opacity override (1 = opaque)
+  opacity?: number;
+  // Optional explicit theme to use for this window
+  theme?: typeof defaultWindowThemes.dark;
 }
 
 const Window: React.FC<WindowProps> = ({
@@ -31,15 +35,23 @@ const Window: React.FC<WindowProps> = ({
   onDragStop,
   onResizeStop,
   children,
+  opacity,
+  theme: themeProp,
 }) => {
-  const { mode } = useDesktopSettings();
-  const [theme, setTheme] = useState(defaultWindowThemes[mode]);
+  const { mode, windowOpacity } = useDesktopSettings();
+  const windowTheme = themeProp ?? defaultWindowThemes[mode];
+  const effectiveOpacity = typeof opacity === 'number' ? opacity : windowOpacity;
 
-  useEffect(() => {
-    setTheme(defaultWindowThemes[mode]);
-  }, [mode]);
-
-  const windowTheme = theme;
+  const hexToRgba = (hex: string, alpha: number) => {
+    const normalized = hex.replace('#', '');
+    const bigint = parseInt(normalized.length === 3
+      ? normalized.split('').map((c) => c + c).join('')
+      : normalized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
 
   return (
     <Rnd
@@ -61,9 +73,14 @@ const Window: React.FC<WindowProps> = ({
       dragHandleClassName="window-title-bar"
       className="border-pixel-sm-[#c0c0c0]"
     >
-      <div className="w-full h-full flex flex-col" style={{background: windowTheme.background}}>
-        <div className="h-7 border-b-1 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
-          style={{ borderColor: windowTheme.border, color: windowTheme.foreground }}
+      <div className={`w-full h-full flex flex-col`}>
+        <div
+          className="h-7 border-b-1 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
+          style={{
+            backgroundColor: windowTheme.background,
+            borderColor: windowTheme.border,
+            color: windowTheme.foreground,
+          }}
         >
           <div className='flex flex-col py-1 h-full justify-around w-[15px] mr-1'>
             <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
@@ -94,8 +111,14 @@ const Window: React.FC<WindowProps> = ({
             <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
           </div>
         </div>
-        <div className="flex-grow overflow-hidden">
-          {React.cloneElement(children as React.ReactElement<{ onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; closeButtonText: string; border: string }) => void }>, { onThemeChange: setTheme })}
+        <div
+          className={`flex-grow overflow-visible`}
+          style={{
+            background: hexToRgba(windowTheme.background, Math.min(1, Math.max(0, effectiveOpacity))),
+          }}
+          onMouseDown={onFocus}
+        >
+          {children}
         </div>
       </div>
     </Rnd>

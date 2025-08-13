@@ -379,3 +379,59 @@ body {
 .hljs {
   background: transparent !important;
 }
+
+.prose h1 {
+  @apply text-2xl font-bold;
+}
+
+.prose h2 {
+  @apply text-xl font-bold;
+}
+
+.prose h3 {
+  @apply text-lg font-bold;
+}
+
+.prose p {
+  @apply text-base;
+}
+
+.prose ul {
+  @apply list-disc list-inside;
+}
+
+.prose ol {
+  @apply list-decimal list-inside;
+}
+
+.prose li {
+  @apply text-base;
+}
+
+
+
+.prose a {
+  @apply text-blue-500 underline;
+}
+
+.prose a:hover {
+  @apply text-blue-600;
+  text-decoration: underline;
+}
+
+.prose a:visited {
+  @apply text-purple-500;
+}
+
+.prose a:active {
+  @apply text-purple-600;
+}
+
+.prose a:focus {
+  @apply text-purple-700;
+} 
+
+.prose p {
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}

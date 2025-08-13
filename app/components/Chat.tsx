@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from 'ai/react';
 import { useDesktopSettings, WallpaperType } from '../lib/store';
+import Button from '@/app/components/ui/Button';
+import Textarea from '@/app/components/ui/Textarea';
 
 interface ChatTheme {
   bg: string;
@@ -399,7 +401,7 @@ export default function Chat({ fx, onThemeChange }: AppProps) {
       {/* Input */}
       <div className={`p-4 border-t ${defaultTheme.border}`}>
         <form onSubmit={handleSubmit} className="flex space-x-2 items-end">
-          <textarea
+          <Textarea
             value={input}
             onChange={handleInputChange}
             onKeyDown={(e) => {
@@ -409,17 +411,17 @@ export default function Chat({ fx, onThemeChange }: AppProps) {
               }
             }}
             placeholder="Type your message..."
-            className={`flex-1 p-2 resize-none border-pixel-lg-black bg-black/10 text-black focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            className={`flex-1 resize-none bg-black/10`}
             rows={Math.min(3, input.split('\n').length)}
             disabled={isLoading}
           />
-          <button
+          <Button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className={`px-4 max-h-[54px] py-2 border-pixel-lg-black/50  bg-black text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/90 transition-colors`}
+            variant="primary"
           >
             Send
-          </button>
+          </Button>
         </form>
       </div>
     </div>

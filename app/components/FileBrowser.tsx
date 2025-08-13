@@ -1,13 +1,20 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { filesystem, Directory } from '@/app/lib/filesystem';
+import { useFilesystem, Directory } from '@/app/lib/filesystem';
 import { getDirectoryByPath, resolvePath } from '@/app/lib/path';
 import { AppProps } from '@/app/lib/apps';
+import Button from '@/app/components/ui/Button';
+import Input from '@/app/components/ui/Input';
 
 type FileRow = { name: string; type: 'Folder' | 'Text'; size: string; modified: string };
 
-interface FileBrowserPayload { path?: string[] }
+type PickerMode =
+  | { kind: 'none' }
+  | { kind: 'open'; onPickId?: string; filterExt?: string[] }
+  | { kind: 'save'; onPickId?: string; suggestedName?: string; filterExt?: string[] };
+
+interface FileBrowserPayload { path?: string[]; picker?: PickerMode }
 function isFileBrowserPayload(value: unknown): value is FileBrowserPayload {
   if (typeof value !== 'object' || value === null) return false;
   const obj = value as Record<string, unknown>;
@@ -16,15 +23,20 @@ function isFileBrowserPayload(value: unknown): value is FileBrowserPayload {
   return p === undefined || (Array.isArray(p) && p.every(seg => typeof seg === 'string'));
 }
 
-const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload }) => {
+const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload, closeSelf }) => {
   void fx;
   const initialPath = isFileBrowserPayload(payload) && payload?.path ? payload.path : ['~'];
+  const picker: PickerMode = (isFileBrowserPayload(payload) && (payload as any).picker)
+    ? (payload as any).picker as PickerMode
+    : ({ kind: 'none' } as const);
+  const { fs, mkdir } = useFilesystem();
   const [currentPath, setCurrentPath] = useState<string[]>(initialPath);
   const [history, setHistory] = useState<string[][]>([initialPath]);
   const [histIndex, setHistIndex] = useState<number>(0);
   const [pathInput, setPathInput] = useState<string>(initialPath.join('/'));
+  const [fileNameInput, setFileNameInput] = useState<string>(picker.kind === 'save' && 'suggestedName' in picker && picker.suggestedName ? picker.suggestedName : '');
 
-  const dir = useMemo(() => getDirectoryByPath(currentPath, filesystem) as Directory, [currentPath]);
+  const dir = useMemo(() => getDirectoryByPath(currentPath, fs) as Directory, [currentPath, fs]);
 
   const rows: FileRow[] = useMemo(() => {
     return Object.keys(dir)
@@ -48,7 +60,7 @@ const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload }) => {
   };
 
   const navigate = (target: string) => {
-    const { newPath, error } = resolvePath(target, currentPath, filesystem);
+    const { newPath, error } = resolvePath(target, currentPath, fs);
     if (error || !newPath) return;
     setCurrentPath(newPath);
     setPathInput(newPath.join('/'));
@@ -77,8 +89,49 @@ const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload }) => {
     } else {
       const value = dir[row.name];
       if (typeof value === 'string') {
-        openApp('notes', { notes: [{ id: currentPath.concat(row.name).join('/'), title: row.name, content: value }] });
+        const fullPath = currentPath.concat(row.name);
+        if (picker.kind === 'open') {
+          // In open picker: filter by ext if provided, then return path
+          if (!picker.filterExt || picker.filterExt.some((ext: string) => row.name.toLowerCase().endsWith(ext))) {
+            // Use a global callback registry via localStorage event channel
+            if (picker.onPickId) {
+              localStorage.setItem(`picker:${picker.onPickId}`, JSON.stringify(fullPath));
+            }
+            closeSelf?.();
+            return;
+          }
+          return;
+        }
+        // Normal open behavior
+        if (/\.(md|notes)$/i.test(row.name)) openApp('notes', { path: fullPath });
       }
+    }
+  };
+
+  const confirmSave = () => {
+    if (picker.kind !== 'save') return;
+    if (!fileNameInput.trim()) return;
+    const finalName = fileNameInput.trim();
+    const fullPath = [...currentPath, finalName];
+    if (picker.onPickId) {
+      localStorage.setItem(`picker:${picker.onPickId}`, JSON.stringify(fullPath));
+    }
+    closeSelf?.();
+  };
+
+  // Keyboard navigation
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(i => Math.min(rows.length - 1, i + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(i => Math.max(0, i - 1));
+    } else if (e.key === 'Enter') {
+      openRow(rows[selectedIndex]);
+    } else if (e.key === 'Backspace') {
+      navigate('..');
     }
   };
 
@@ -86,15 +139,18 @@ const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload }) => {
     <div className="w-full h-full flex flex-col font-mono text-slate-900">
       {/* Toolbar */}
       <div className="flex items-center gap-2 p-2 border-b border-slate-300 bg-white">
-        <button className="px-2 py-1 border border-slate-300 text-xs rounded disabled:opacity-40" onClick={goBack} disabled={histIndex <= 0}>←</button>
-        <button className="px-2 py-1 border border-slate-300 text-xs rounded disabled:opacity-40" onClick={goForward} disabled={histIndex >= history.length - 1}>→</button>
-        <button className="px-2 py-1 border border-slate-300 text-xs rounded" onClick={() => navigate('..')}>↑</button>
-        <input
-          className="flex-1 px-2 py-1 border border-slate-300 rounded text-xs"
+        <Button size="sm" onClick={goBack} disabled={histIndex <= 0}>←</Button>
+        <Button size="sm" onClick={goForward} disabled={histIndex >= history.length - 1}>→</Button>
+        <Button size="sm" onClick={() => navigate('..')}>↑</Button>
+        <Input
+          className="flex-1 text-xs"
           value={pathInput}
           onChange={(e) => setPathInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') navigate(pathInput); }}
         />
+        {picker.kind !== 'none' && (
+          <Button size="sm" variant="secondary" onClick={() => closeSelf?.()}>Cancel</Button>
+        )}
       </div>
 
       {/* Header */}
@@ -106,15 +162,20 @@ const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload }) => {
       </div>
 
       {/* Rows */}
-      <div className="flex-1 overflow-auto">
-        {rows.map((row) => (
+      <div className="flex-1 overflow-auto outline-none" tabIndex={0} onKeyDown={onKey}>
+        {rows.map((row, idx) => (
           <button
             key={row.name}
-            className="w-full grid grid-cols-[minmax(200px,1fr)_160px_120px_160px] px-3 py-2 text-xs text-left hover:bg-slate-100 border-b border-slate-100"
+            className={`w-full grid grid-cols-[minmax(200px,1fr)_160px_120px_160px] px-3 py-2 text-xs text-left border-b border-slate-100 hover:bg-slate-100 ${idx === selectedIndex ? 'bg-slate-100' : ''}`}
             onDoubleClick={() => openRow(row)}
+            onMouseEnter={() => setSelectedIndex(idx)}
           >
             <div className="flex items-center gap-2">
-              <span>{row.type === 'Folder' ? '📁' : '📄'}</span>
+              <span>
+                {row.type === 'Folder'
+                  ? '📁'
+                  : (/\.(md|notes)$/i.test(row.name) ? '📝' : '📄')}
+              </span>
               <span>{row.name}</span>
             </div>
             <div>{row.type}</div>
@@ -123,6 +184,15 @@ const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload }) => {
           </button>
         ))}
       </div>
+
+      {/* Picker footer */}
+      {picker.kind === 'save' && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-t border-slate-200">
+          <span className="text-xs">Save As:</span>
+          <Input className="flex-1 text-xs" value={fileNameInput} onChange={(e) => setFileNameInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') confirmSave(); }} />
+          <Button size="sm" variant="primary" onClick={confirmSave}>Save</Button>
+        </div>
+      )}
 
       {/* Status bar */}
       <div className="px-3 py-1 text-[11px] bg-slate-50 border-t border-slate-200 text-slate-600">{rows.length} items</div>

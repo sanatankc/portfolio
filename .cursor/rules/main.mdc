@@ -3,3 +3,6 @@ description:
 globs:
 alwaysApply: true
 ---
+
+
+- NEVER EVER TRY BUILDING A NEXT.JS PROJECT AFTER YOU DONE MAKING CHANGES.

@@ -15,6 +15,9 @@ interface DesktopSettingsState {
   setIconSize: (size: IconSize) => void;
   mode: Mode;
   setMode: (mode: Mode) => void;
+  // Opacity applied to window backgrounds (1 = opaque). Range [0.6, 1]
+  windowOpacity: number;
+  setWindowOpacity: (opacity: number) => void;
   hydrate: () => void;
   persist: () => void;
 }
@@ -50,16 +53,19 @@ export const useDesktopSettings = create<DesktopSettingsState>((set, get) => ({
   setIconSize: (iconSize) => { set({ iconSize }); get().persist(); },
   mode: 'dark',
   setMode: (mode) => { set({ mode }); get().persist(); },
+  windowOpacity: 1,
+  setWindowOpacity: (windowOpacity) => { set({ windowOpacity }); get().persist(); },
   hydrate: () => {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
       const data = JSON.parse(raw);
-      set({ ...data });
+      // Merge with defaults to ensure new fields are populated
+      set({ ...get(), ...data });
     }
   },
   persist: () => {
-    const {wallpaper, wallpapers, iconSize, mode} = get();
-    localStorage.setItem(LS_KEY, JSON.stringify({wallpaper, wallpapers, iconSize, mode}));
+    const {wallpaper, wallpapers, iconSize, mode, windowOpacity} = get();
+    localStorage.setItem(LS_KEY, JSON.stringify({wallpaper, wallpapers, iconSize, mode, windowOpacity}));
   }
 }));
 
