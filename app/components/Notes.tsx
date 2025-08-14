@@ -63,11 +63,17 @@ const Notes: React.FC<AppProps> = ({ fx, payload, openApp, setWindowTitle }) => 
     return 'Untitled.notes';
   }, [path]);
 
-  // Update title from file name (without extension) or first markdown H1 if present
+  // Compute desired window title from filename (avoid re-running on content changes)
+  const desiredTitle = useMemo(() => stripExtension(filename) || 'Untitled', [filename]);
+
+  // Update title only when the computed title actually changes
+  const lastTitleRef = React.useRef<string>('');
   useEffect(() => {
-    const base = stripExtension(filename);
-    setWindowTitle?.(base || 'Untitled');
-  }, [filename, existingFileContent, draftContent, setWindowTitle]);
+    if (!setWindowTitle) return;
+    if (lastTitleRef.current === desiredTitle) return;
+    lastTitleRef.current = desiredTitle;
+    setWindowTitle(desiredTitle);
+  }, [desiredTitle, setWindowTitle]);
 
   const save = () => {
     if (!path) {

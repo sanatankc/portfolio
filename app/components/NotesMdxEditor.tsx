@@ -35,11 +35,23 @@ const NotesMdxEditor: React.FC<NotesMdxEditorProps> = ({ value, onChange, readOn
     if (next === value) return; // avoid spurious updates
     onChange(next);
   }, [onChange, value]);
-  // return <div></div></dib>
 
   // Apply appropriate text color based on light/dark mode
   const mode = useDesktopSettings((s) => s.mode);
   const textColorClass = mode === 'dark' ? 'text-white' : 'text-black';
+
+  const plugins = React.useMemo(() => [
+    // Avoid re-creating plugin instances on every render
+    headingsPlugin(),
+    listsPlugin(),
+    quotePlugin(),
+    linkPlugin(),
+    linkDialogPlugin(),
+    thematicBreakPlugin(),
+    codeBlockPlugin({ defaultCodeBlockLanguage: 'markdown' }),
+    markdownShortcutPlugin(),
+    tablePlugin(),
+  ] as MDXEditorProps['plugins'], []);
 
   return (
     <div
@@ -103,18 +115,7 @@ const NotesMdxEditor: React.FC<NotesMdxEditorProps> = ({ value, onChange, readOn
         markdown={value}
         onChange={handleChange}
         readOnly={readOnly}
-        plugins={[
-          diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: 'boo' }),
-          headingsPlugin(),
-          listsPlugin(),
-          quotePlugin(),
-          linkPlugin(),
-          linkDialogPlugin(),
-          thematicBreakPlugin(),
-          codeBlockPlugin({ defaultCodeBlockLanguage: 'markdown' }),
-          markdownShortcutPlugin(),
-          tablePlugin(),
-        ] as MDXEditorProps['plugins']}
+        plugins={plugins}
       />
     </div>
   );

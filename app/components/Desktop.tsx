@@ -187,8 +187,8 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     });
     return () => {
       console.log('initialOpenTimers... canceling', initialOpenTimers.current)
-      const timersAtCleanup = [...initialOpenTimers.current];
-      timersAtCleanup.forEach(id => clearTimeout(id));
+      // const timersAtCleanup = [...initialOpenTimers.current];
+      // timersAtCleanup.forEach(id => clearTimeout(id));
     };
   }, [initialWindows, openApp]);
 
@@ -236,13 +236,13 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     bgStyle.color = '#222';
   }
 
-  const setWindowTitle = (id: number, title: string) => {
+  const setWindowTitle = React.useCallback((id: number, title: string) => {
     setWindows(prev => prev.map(w => {
       if (w.id !== id) return w;
       if (w.titleOverride === title) return w; // avoid unnecessary updates to prevent loops
       return { ...w, titleOverride: title };
     }));
-  };
+  }, [setWindows]);
 
   const closeWindow = (id: number) => {
     fx?.play("close");
