@@ -39,8 +39,8 @@ export default function Home() {
             initialWindows={[
               // 'terminal',
               // 'chat',
-              { appId: 'notes', payload: { path: ['~','work.notes'] }, positionPct: { x: 0.15, y: 0.15 } },
-              { appId: 'notes', payload: { path: ['~','whoami.notes'] }, positionPct: { x: 0.50, y: 0.35 } },
+              { appId: 'notes', payload: { path: ['~','work.notes'] }, positionPct: { x: 0.50, y: 0.35  } },
+              { appId: 'notes', payload: { path: ['~','whoami.notes'] }, positionPct: {x: 0.15, y: 0.15 } },
             ]}
             fx={fxPlayerRef.current || undefined}
           />
