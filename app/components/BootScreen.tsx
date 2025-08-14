@@ -94,9 +94,6 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
   useEffect(() => {
     if (isBootingUp) return;
 
-    // Update progress for the typing phase (0-80%)
-    setProgress((currentLineIndex / BOOT_SEQUENCE.length) * 80);
-
     if (currentLineIndex >= BOOT_SEQUENCE.length) {
       // All lines typed, enter booting up phase
       setIsBootingUp(true);
@@ -172,19 +169,29 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
     }
   }, [currentLineIndex, currentCharIndex, isBootingUp]);
 
+  // Progress for typing phase derived from currentLineIndex only
+  useEffect(() => {
+    if (isBootingUp) return;
+    const next = Math.min(80, (currentLineIndex / BOOT_SEQUENCE.length) * 80);
+    setProgress(prev => (prev === next ? prev : next));
+  }, [currentLineIndex, isBootingUp]);
+
   // Handle booting up phase (20% of total boot time)
   useEffect(() => {
     if (!isBootingUp) return;
 
     const progressInterval = 100; // Update every 100ms
-    const totalSteps = BOOTING_UP_DURATION / progressInterval;
+    const totalSteps = Math.max(1, Math.ceil(BOOTING_UP_DURATION / progressInterval));
     let currentStep = 0;
 
     const progressTimer = setInterval(() => {
       currentStep++;
       const bootProgress = (currentStep / totalSteps) * 20; // 20% of total progress (80-100%)
       setBootingUpProgress(bootProgress);
-      setProgress(80 + bootProgress); // Add to the 80% from typing phase
+      setProgress(prev => {
+        const next = Math.min(100, 80 + bootProgress);
+        return prev === next ? prev : next;
+      });
 
       if (currentStep >= totalSteps) {
         clearInterval(progressTimer);
