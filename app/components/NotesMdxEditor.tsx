@@ -17,7 +17,7 @@ import {
   markdownShortcutPlugin,
   codeBlockPlugin,
   tablePlugin,
-  diffSourcePlugin,
+  // diffSourcePlugin,
   thematicBreakPlugin
 } from '@mdxeditor/editor';
 import { useDesktopSettings } from '@/app/lib/store';
