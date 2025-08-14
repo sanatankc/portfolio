@@ -432,6 +432,20 @@ body {
 } 
 
 .prose p {
-  margin-bottom: 1rem;
-  margin-top: 1rem;
+  margin-bottom: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.prose p:has(small) {
+  margin-bottom: 0rem;
+  margin-top: 0.9rem;
+}
+
+
+.prose.text-white {
+  color: #fff !important;
+}
+
+.prose.text-black {
+  color: #000 !important;
 }

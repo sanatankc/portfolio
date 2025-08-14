@@ -37,30 +37,19 @@ export interface App {
     heightRatio?: number; // 0..1
     // Optional default background opacity for this app's window (1 = opaque)
     opacity?: number;
+    backdropBlurPx?: number;
     // Optional explicit window theme override per app
     theme?: typeof defaultWindowThemes.dark;
   };
 }
 
 const apps: App[] = [
-  {
-    id: 'terminal',
-    name: 'Terminal',
-    component: Terminal as React.FC<AppProps>,
-    icon: TerminalIcon,
-  },
-  {
-    id: 'settings',
-    name: 'Settings',
-    component: Settings as React.FC<AppProps>,
-    icon: SettingsIcon,
-  },
-  {
-    id: 'chat',
-    name: 'Chat',
-    component: Chat as React.FC<AppProps>,
-    icon: ChatIcon,
-  },
+  // {
+  //   id: 'chat',
+  //   name: 'Chat',
+  //   component: Chat as React.FC<AppProps>,
+  //   icon: ChatIcon,
+  // },
   {
     id: 'file-browser',
     name: 'Files',
@@ -73,13 +62,25 @@ const apps: App[] = [
     name: 'Notes',
     component: Notes as React.FC<AppProps>,
     icon: NotesIcon,
-    defaultWindow: { widthRatio: 0.5, heightRatio: 0.5, opacity: 0.9 },
+    defaultWindow: { widthRatio: 0.5, heightRatio: 0.5, opacity: 0.9, backdropBlurPx: 10 },
   },
   {
     id: 'browser',
     name: 'Browser',
     component: Browser as React.FC<AppProps>,
     icon: BrowserIcon,
+  },
+  {
+    id: 'terminal',
+    name: 'Terminal',
+    component: Terminal as React.FC<AppProps>,
+    icon: TerminalIcon,
+  },
+  {
+    id: 'settings',
+    name: 'Settings',
+    component: Settings as React.FC<AppProps>,
+    icon: SettingsIcon,
   },
 ];
 

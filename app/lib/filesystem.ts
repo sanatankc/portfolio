@@ -23,6 +23,8 @@ export type Filesystem = Directory;
 
 type FilesystemStore = {
   fs: Directory;
+  // Snapshot of the bundled, read-only filesystem shipped with the app (from /api/vfs)
+  seedFs: Directory | null;
   setFs: (next: Directory) => void;
   readDir: (path: string[]) => Directory | null;
   readFile: (path: string[]) => string | null;
@@ -31,14 +33,17 @@ type FilesystemStore = {
   exists: (path: string[]) => boolean;
   isDir: (path: string[]) => boolean;
   isFile: (path: string[]) => boolean;
+  // Returns true if the given path points to a file that comes from the bundled VFS (read-only)
+  isBundledFile: (path: string[]) => boolean;
   persist: () => void;
   hydrate: () => void;
 };
 
-const LS_KEY = 'vfs_v1';
+const LS_KEY = 'vfs_overlay_v1';
 
 export const useFilesystem = create<FilesystemStore>((set, get) => ({
   fs: defaultFilesystem,
+  seedFs: null,
   setFs: (next) => { set({ fs: next }); get().persist(); },
   readDir: (path) => {
     let current: Directory | string = get().fs;
@@ -122,36 +127,109 @@ export const useFilesystem = create<FilesystemStore>((set, get) => ({
     if (typeof current !== 'object') return false;
     return typeof current[last] === 'string';
   },
+  isBundledFile: (path) => {
+    const seed = get().seedFs;
+    if (!seed) return false;
+    let current: Directory | string = seed;
+    const last = path[path.length - 1];
+    for (let i = 0; i < path.length - 1; i++) {
+      const segment = path[i];
+      if (typeof current !== 'object') return false;
+      current = (current as Directory)[segment];
+      if (current === undefined) return false;
+    }
+    if (typeof current !== 'object') return false;
+    return typeof (current as Directory)[last] === 'string';
+  },
   persist: () => {
     try {
-      const { fs } = get();
-      localStorage.setItem(LS_KEY, JSON.stringify(fs));
+      const { fs, seedFs } = get();
+      // Only persist user-created content (keys not present in seedFs)
+      const keepOnlyExtras = (current: Directory, seed: Directory | null): Directory => {
+        const result: Directory = {};
+        for (const key of Object.keys(current)) {
+          const currVal = current[key];
+          const seedVal = seed ? (seed as Directory)[key] : undefined;
+          if (seed && seedVal !== undefined) {
+            if (typeof currVal === 'object' && typeof seedVal === 'object') {
+              const child = keepOnlyExtras(currVal as Directory, seedVal as Directory);
+              if (Object.keys(child).length > 0) result[key] = child;
+            }
+            // If exists in seed as file or equal dir, skip persisting
+          } else {
+            result[key] = currVal;
+          }
+        }
+        return result;
+      };
+      const overlay = keepOnlyExtras(fs, seedFs);
+      localStorage.setItem(LS_KEY, JSON.stringify(overlay));
     } catch {
       // ignore
     }
   },
   hydrate: () => {
+    // Try to load local overlay (user-created files only)
+    let overlay: Directory = {};
     try {
       const raw = localStorage.getItem(LS_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        set({ fs: parsed });
-      }
+      if (raw) overlay = JSON.parse(raw);
     } catch {
-      // ignore, keep defaults
+      // ignore
     }
-    // Also try to hydrate from static API (generated at build time)
+    // Fetch server snapshot and merge overlay in (server wins)
     try {
-      // Fire-and-forget; no need to await
       void (async () => {
-        const res = await fetch('/api/vfs');
-        if (!res.ok) return;
-        const fromServer = await res.json();
-        set({ fs: fromServer });
-        get().persist();
+        try {
+          const res = await fetch('/api/vfs');
+          if (!res.ok) throw new Error('failed');
+          const fromServer = await res.json() as Directory;
+          const mergeWithoutOverwrite = (base: Directory, over: Directory): Directory => {
+            const result: Directory = structuredClone(base);
+            const mergeDir = (target: Directory, overlayDir: Directory) => {
+              for (const key of Object.keys(overlayDir)) {
+                const overVal = overlayDir[key];
+                const targetVal = target[key];
+                if (targetVal === undefined) {
+                  target[key] = overVal;
+                } else if (typeof targetVal === 'object' && typeof overVal === 'object') {
+                  mergeDir(targetVal as Directory, overVal as Directory);
+                }
+              }
+            };
+            mergeDir(result, over);
+            return result;
+          };
+          const mergedFs = mergeWithoutOverwrite(fromServer, overlay);
+          set({ fs: mergedFs, seedFs: fromServer });
+          get().persist();
+        } catch {
+          // Fallback: merge overlay onto default seed
+          const mergedFallback = (() => {
+            const merge = (base: Directory, over: Directory): Directory => {
+              const result: Directory = structuredClone(base);
+              const mergeDir = (target: Directory, overlayDir: Directory) => {
+                for (const key of Object.keys(overlayDir)) {
+                  const overVal = overlayDir[key];
+                  const targetVal = target[key];
+                  if (targetVal === undefined) {
+                    target[key] = overVal;
+                  } else if (typeof targetVal === 'object' && typeof overVal === 'object') {
+                    mergeDir(targetVal as Directory, overVal as Directory);
+                  }
+                }
+              };
+              mergeDir(result, over);
+              return result;
+            };
+            return merge(defaultFilesystem, overlay);
+          })();
+          set({ fs: mergedFallback, seedFs: defaultFilesystem });
+          get().persist();
+        }
       })();
     } catch {
-      // ignore network errors (e.g., during static export)
+      // ignore
     }
   }
 }));

@@ -22,13 +22,12 @@ interface DesktopSettingsState {
   persist: () => void;
 }
 
+// Temporary hack: ideally I want this to directly get from wallpapers folder
 const defaultWallpapers: WallpaperType[] = [
-  { type: 'color', value: '#222' },
-  { type: 'color', value: '#1e293b' },
-  { type: 'color', value: '#fbbf24' },
-  { type: 'color', value: '#f472b6' },
-  { type: 'image', value: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80' },
-  { type: 'image', value: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80' },
+  // Use bundled wallpapers from the public/wallpapers folder; first one is default
+  { type: 'image', value: '/wallpapers/9285000.jpg' },
+  { type: 'image', value: '/wallpapers/1138740.png' },
+  { type: 'image', value: '/wallpapers/1293302.jpg' },
 ];
 
 const LS_KEY = 'desktop_settings_v1';
@@ -51,7 +50,7 @@ export const useDesktopSettings = create<DesktopSettingsState>((set, get) => ({
   },
   iconSize: 'regular',
   setIconSize: (iconSize) => { set({ iconSize }); get().persist(); },
-  mode: 'dark',
+  mode: 'light',
   setMode: (mode) => { set({ mode }); get().persist(); },
   windowOpacity: 1,
   setWindowOpacity: (windowOpacity) => { set({ windowOpacity }); get().persist(); },

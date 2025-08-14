@@ -7,6 +7,7 @@ import { getApps, getApp } from '../lib/apps';
 import { useDesktopSettings } from '../lib/store';
 import { defaultWindowThemes } from '../lib/themes';
 import { FxPlayer } from '../lib/fx';
+import { resolveWallpaperUrl, saveWallpaperBlob } from '../lib/wallpapers';
 
 interface WindowState {
   id: number;
@@ -20,6 +21,7 @@ interface WindowState {
   opacity?: number;
   theme?: typeof defaultWindowThemes.dark;
   titleOverride?: string;
+  backdropBlurPx?: number;
 }
 
 type InitialWindow = string | { appId: string; payload?: unknown };
@@ -36,7 +38,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const apps = getApps();
 
   console.log('apps...', apps)
-  const { wallpaper, mode } = useDesktopSettings();
+  const { wallpaper, mode, addWallpaper, setWallpaper } = useDesktopSettings();
   const silentFx: FxPlayer = { play: () => {}, isLoaded: () => false };
   const effectiveFx = fx ?? silentFx;
 
@@ -84,7 +86,35 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   }, [initialWindows]);
 
   const bgStyle: React.CSSProperties = {};
-  bgStyle.backgroundImage = `url('${wallpaper.value}')`;
+  const [resolvedBg, setResolvedBg] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (wallpaper.type === 'image') {
+        // Migrate legacy data: URLs to IndexedDB for shorter, efficient blob URLs
+        if (typeof wallpaper.value === 'string' && wallpaper.value.startsWith('data:')) {
+          try {
+            const res = await fetch(wallpaper.value);
+            const blob = await res.blob();
+            const id = await saveWallpaperBlob(blob);
+            const idRef = `idb:${id}`;
+            addWallpaper({ type: 'image', value: idRef });
+            setWallpaper({ type: 'image', value: idRef });
+          } catch {
+            // ignore migration failure; fall back to using data URL as-is
+          }
+        }
+        const url = await resolveWallpaperUrl(wallpaper.value);
+        if (!cancelled) setResolvedBg(url);
+      } else {
+        setResolvedBg(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [wallpaper]);
+  if (wallpaper.type === 'image') {
+    bgStyle.backgroundImage = resolvedBg ? `url('${resolvedBg}')` : undefined;
+  }
   bgStyle.backgroundSize = 'cover';
   bgStyle.backgroundPosition = 'center';
   if (wallpaper.type === 'color') {
@@ -103,15 +133,88 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     const app = getApp(appId);
     if (!app) return;
 
+    // If a window with same appId and same payload exists, bring it to front
+    const stableStringify = (obj: unknown): string => {
+      const seen = new WeakSet();
+      const stringify = (value: any): any => {
+        if (value && typeof value === 'object') {
+          if (seen.has(value)) return undefined;
+          seen.add(value);
+          if (Array.isArray(value)) return value.map(stringify);
+          return Object.keys(value).sort().reduce((acc: any, key) => {
+            acc[key] = stringify((value as any)[key]);
+            return acc;
+          }, {});
+        }
+        return value;
+      };
+      try { return JSON.stringify(stringify(obj)); } catch { return ''; }
+    };
+
+    const payloadKey = stableStringify(payload);
+    const existing = windows.find(w => w.appId === appId && stableStringify(w.payload) === payloadKey);
+    if (existing) {
+      bringToFront(existing.id);
+      return existing.id;
+    }
+
     const widthRatio = app.defaultWindow?.widthRatio ?? 0.8;
     const heightRatio = app.defaultWindow?.heightRatio ?? 0.8;
 
-    console.log('app.defailWindow...', app.defaultWindow)
-    const defaultOpacity = app.defaultWindow && 'opacity' in app.defaultWindow 
-      ? (app.defaultWindow as any).opacity as number | undefined 
-      : undefined;
+    const defaultOpacity = app.defaultWindow?.opacity;
     const defaultTheme = app.defaultWindow?.theme;
-    const persisted = loadGeometry(appId);
+
+    // Placement helpers
+    const rectsIntersect = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }) => {
+      return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
+    };
+    const existingRects = windows.map(w => ({ x: w.x, y: w.y, w: w.width, h: w.height }));
+    const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+    const findFirstNonOverlapping = (w: number, h: number, preferred?: { x: number; y: number }) => {
+      const margin = 8;
+      const maxX = Math.max(margin, window.innerWidth - w - margin);
+      const maxY = Math.max(margin, window.innerHeight - h - margin);
+      const grid = 24;
+      // Try preferred first if provided
+      if (preferred) {
+        const px = clamp(preferred.x, margin, maxX);
+        const py = clamp(preferred.y, margin, maxY);
+        const candidate = { x: px, y: py, w, h };
+        if (!existingRects.some(r => rectsIntersect(candidate, r))) return { x: px, y: py };
+      }
+      // Scan grid left-to-right, top-to-bottom
+      for (let y = margin; y <= maxY; y += grid) {
+        for (let x = margin; x <= maxX; x += grid) {
+          const candidate = { x, y, w, h };
+          if (!existingRects.some(r => rectsIntersect(candidate, r))) return { x, y };
+        }
+      }
+      return null;
+    };
+    const computeCascade = (w: number, h: number) => {
+      const baseX = Math.round(window.innerWidth * 0.1);
+      const baseY = Math.round(window.innerHeight * 0.1);
+      const step = 28;
+      const idx = windows.length;
+      let x = baseX + idx * step;
+      let y = baseY + idx * step;
+      const maxX = window.innerWidth - w - 8;
+      const maxY = window.innerHeight - h - 8;
+      x = ((x - 8) % Math.max(1, maxX - 8)) + 8;
+      y = ((y - 8) % Math.max(1, maxY - 8)) + 8;
+      return { x, y };
+    };
+
+    // Determine window size
+    const persistedAny = loadGeometry(appId);
+    const width = persistedAny?.width ?? Math.max(360, window.innerWidth * widthRatio);
+    const height = persistedAny?.height ?? Math.max(260, window.innerHeight * heightRatio);
+
+    // Use persisted position only for the first instance of this appId
+    const isFirstInstanceForApp = windows.every(w => w.appId !== appId);
+    const preferredPos = isFirstInstanceForApp && persistedAny ? { x: persistedAny.x, y: persistedAny.y } : undefined;
+    const nonOverlap = findFirstNonOverlapping(width, height, preferredPos);
+    const pos = nonOverlap ?? computeCascade(width, height);
 
     const id = nextId++;
     setWindows(prev => [
@@ -119,13 +222,14 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
       {
         id,
         appId: appId,
-        x: persisted?.x ?? window.innerWidth * 0.1,
-        y: persisted?.y ?? window.innerHeight * 0.1,
-        width: persisted?.width ?? Math.max(360, window.innerWidth * widthRatio),
-        height: persisted?.height ?? Math.max(260, window.innerHeight * heightRatio),
+        x: pos.x,
+        y: pos.y,
+        width,
+        height,
         zIndex: Math.max(getHighestZIndex() + 1, 20),
         payload,
         opacity: defaultOpacity,
+        backdropBlurPx: app.defaultWindow?.backdropBlurPx,
         theme: defaultTheme,
       },
     ]);
@@ -212,6 +316,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
             onResizeStop={(width, height, x, y) => updateWindowSize(win.id, width, height, x, y)}
             opacity={win.opacity}
             theme={win.theme}
+            backdropBlurPx={win.backdropBlurPx}
           >
             <AppComponent
               fx={effectiveFx}

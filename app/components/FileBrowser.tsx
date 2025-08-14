@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useFilesystem, Directory } from '@/app/lib/filesystem';
 import { getDirectoryByPath, resolvePath } from '@/app/lib/path';
 import { AppProps } from '@/app/lib/apps';
@@ -135,13 +135,30 @@ const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload, closeSelf }) =>
     }
   };
 
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [headerWidth, setHeaderWidth] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setHeaderWidth(el.scrollWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [rows.length, currentPath.join('/')]);
+
   return (
     <div className="w-full h-full flex flex-col font-mono text-slate-900">
       {/* Toolbar */}
       <div className="flex items-center gap-2 p-2 border-b border-slate-300 bg-white">
         <Button size="sm" onClick={goBack} disabled={histIndex <= 0}>←</Button>
         <Button size="sm" onClick={goForward} disabled={histIndex >= history.length - 1}>→</Button>
-        <Button size="sm" onClick={() => navigate('..')}>↑</Button>
+        <Button size="sm" onClick={() => navigate('..')} disabled={currentPath.length <= 1}>↑</Button>
         <Input
           className="flex-1 text-xs"
           value={pathInput}
@@ -153,34 +170,37 @@ const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload, closeSelf }) =>
         )}
       </div>
 
-      {/* Header */}
-      <div className="grid grid-cols-[minmax(200px,1fr)_160px_120px_160px] px-3 py-2 text-xs bg-slate-50 border-b border-slate-200">
-        <div className="font-semibold">Name</div>
-        <div className="font-semibold">Type</div>
-        <div className="font-semibold">Size</div>
-        <div className="font-semibold">Modified</div>
-      </div>
-
-      {/* Rows */}
-      <div className="flex-1 overflow-auto outline-none" tabIndex={0} onKeyDown={onKey}>
+      {/* Scroll area with sticky header */}
+      <div ref={scrollRef} className="flex-1 overflow-auto outline-none bg-white [scrollbar-gutter:stable]" tabIndex={0} onKeyDown={onKey}>
+        <div className="sticky top-0 z-10 grid min-w-full grid-cols-[minmax(200px,1fr)_160px_120px_160px] px-3 py-2 text-xs bg-slate-50 border-b border-slate-200" style={{ width: headerWidth ? `${headerWidth}px` : undefined }}>
+          <div className="font-semibold">Name</div>
+          <div className="font-semibold">Type</div>
+          <div className="font-semibold">Size</div>
+          <div className="font-semibold">Modified</div>
+        </div>
         {rows.map((row, idx) => (
           <button
             key={row.name}
-            className={`w-full grid grid-cols-[minmax(200px,1fr)_160px_120px_160px] px-3 py-2 text-xs text-left border-b border-slate-100 hover:bg-slate-100 ${idx === selectedIndex ? 'bg-slate-100' : ''}`}
+            className={`group w-full min-w-full block text-left border-b border-slate-100`}
             onDoubleClick={() => openRow(row)}
             onMouseEnter={() => setSelectedIndex(idx)}
           >
-            <div className="flex items-center gap-2">
-              <span>
-                {row.type === 'Folder'
-                  ? '📁'
-                  : (/\.(md|notes)$/i.test(row.name) ? '📝' : '📄')}
-              </span>
-              <span>{row.name}</span>
+            <div
+              className={`grid grid-cols-[minmax(200px,1fr)_160px_120px_160px] px-3 py-2 text-xs ${idx === selectedIndex ? 'bg-slate-100' : 'bg-white'} group-hover:bg-slate-100`}
+              style={{ width: headerWidth ? `${headerWidth}px` : undefined }}
+            >
+              <div className="flex items-center gap-2">
+                <span>
+                  {row.type === 'Folder'
+                    ? '📁'
+                    : (/\.(md|notes)$/i.test(row.name) ? '📝' : '📄')}
+                </span>
+                <span>{row.name}</span>
+              </div>
+              <div>{row.type}</div>
+              <div>{row.size}</div>
+              <div>{row.modified}</div>
             </div>
-            <div>{row.type}</div>
-            <div>{row.size}</div>
-            <div>{row.modified}</div>
           </button>
         ))}
       </div>

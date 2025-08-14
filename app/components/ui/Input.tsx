@@ -3,7 +3,7 @@
 import React from 'react';
 import clsx from 'clsx';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -13,7 +13,7 @@ const sizeClasses: Record<NonNullable<InputProps['size']>, string> = {
   lg: 'px-3 py-2 text-[14px]',
 };
 
-const base = 'font-mono border-pixel-sm-[#c0c0c0] bg-white text-black placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500';
+const base = 'font-mono border-pixel-sm-[#c0c0c0] bg-[#f5f5f5] text-black placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500';
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, size = 'md', ...props }, ref) => {

@@ -5,6 +5,7 @@ import { AppProps } from '../lib/apps';
 import clsx from 'clsx';
 import Button from '@/app/components/ui/Button';
 import Input from '@/app/components/ui/Input';
+import { saveWallpaperBlob, resolveWallpaperUrl } from '@/app/lib/wallpapers';
 
 // Removed built-in wallpapers and URL input. The new UI uses a single
 // drag-and-drop/click uploader for setting a custom wallpaper image.
@@ -15,14 +16,14 @@ const tabs = [
     label: 'Display',
     value: 'display',
   },
-  {
-    label: 'System',
-    value: 'system',
-  },
-  {
-    label: 'About',
-    value: 'about',
-  },
+  // {
+  //   label: 'System',
+  //   value: 'system',
+  // },
+  // {
+  //   label: 'About',
+  //   value: 'about',
+  // },
   {
     label: 'Reset',
     value: 'reset',
@@ -65,12 +66,12 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const value = ev.target?.result as string;
+    // Save to IndexedDB and store short id reference
+    (async () => {
+      const id = await saveWallpaperBlob(file);
+      const value = `idb:${id}`;
       addWallpaper({ type: 'image', value });
-    };
-    reader.readAsDataURL(file);
+    })();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,6 +95,16 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
   }, []);
 
   const theme = defaultWindowThemes[mode];
+  const [currentPreview, setCurrentPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const url = wallpaper.type === 'image' ? await resolveWallpaperUrl(wallpaper.value) : null;
+      if (!cancelled) setCurrentPreview(url);
+    })();
+    return () => { cancelled = true; };
+  }, [wallpaper]);
 
 
   return (
@@ -169,43 +180,16 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
                 </div>
                 {wallpaper.type === 'image' && (
                   <div className="mt-4 flex items-center gap-3">
-                    <img src={wallpaper.value} alt="Current wallpaper" className="w-24 h-16 object-cover rounded border" />
+                    <img src={currentPreview ?? ''} alt="Current wallpaper" className="w-24 h-16 object-cover rounded border" />
                     <div className="text-xs text-gray-600">Current wallpaper</div>
                   </div>
                 )}
               </div>
               {/* Saved wallpapers (user uploads) */}
               <div className="mt-4">
-                <div className="text-sm font-medium mb-2">Your wallpapers</div>
+                <div className="text-sm font-medium mb-2">Wallpapers</div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {wallpapers
-                    .filter(w => w.type === 'image')
-                    .map((w, i) => (
-                      <button
-                        key={`${w.value}-${i}`}
-                        className={clsx(
-                          'relative group border rounded overflow-hidden h-16',
-                          wallpaper.type === 'image' && wallpaper.value === w.value
-                            ? 'ring-2 ring-blue-500'
-                            : 'border-gray-300 hover:border-gray-400'
-                        )}
-                        onClick={() => setWallpaper({ type: 'image', value: w.value })}
-                      >
-                        <img src={w.value} alt="saved" className="w-full h-full object-cover" />
-                        {wallpaper.type === 'image' && wallpaper.value === w.value && (
-                          <span className="absolute bottom-1 left-1 text-[10px] bg-blue-600 text-white px-1 py-0.5 rounded">Current</span>
-                        )}
-                      </button>
-                    ))}
-                </div>
-              </div>
-
-              {/* Default wallpapers from folder */}
-              {defaultWallpapers.length > 0 && (
-                <div className="mt-6">
-                  <div className="text-sm font-medium mb-2">Default wallpapers</div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                    {defaultWallpapers.map((src) => (
+                {defaultWallpapers.map((src) => (
                       <button
                         key={src}
                         className={clsx(
@@ -216,18 +200,16 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
                         )}
                         onClick={() => setWallpaper({ type: 'image', value: src })}
                       >
-                        <img src={src} alt="default" className="w-full h-full object-cover" />
+                        <ResolvedImage value={src} className="w-full h-full object-cover" />
                         {wallpaper.type === 'image' && wallpaper.value === src && (
                           <span className="absolute bottom-1 left-1 text-[10px] bg-blue-600 text-white px-1 py-0.5 rounded">Current</span>
                         )}
                       </button>
                     ))}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-2">Add images to `public/wallpapers/` to extend this list.</div>
                 </div>
-              )}
+              </div>
             </div>
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <div className="font-semibold mb-1">Icon Size</div>
               <div className="flex gap-2">
                 {(['small','regular','large'] as IconSize[]).map(size => (
@@ -239,7 +221,7 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
                   >{size.charAt(0).toUpperCase()+size.slice(1)}</Button>
                 ))}
               </div>
-            </div>
+            </div> */}
             <div className="mb-4">
               <div className="font-semibold mb-1">Dark/Light Mode</div>
               <div className="flex gap-2">
@@ -297,3 +279,17 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
 };
 
 export default Settings; 
+
+// Helper component that resolves idb: refs to blob URLs for <img>
+const ResolvedImage: React.FC<{ value: string; className?: string }> = ({ value, className }) => {
+  const [src, setSrc] = useState<string>('');
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const url = await resolveWallpaperUrl(value);
+      if (active) setSrc(url);
+    })();
+    return () => { active = false; };
+  }, [value]);
+  return <img src={src} className={className} alt="wallpaper" />;
+};

@@ -51,14 +51,50 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     p: (props) => (
       <p className="font-satoshi text-base md:text-lg leading-relaxed text-slate-700 dark:text-slate-300 mb-6" {...props} />
     ),
-    a: (props) => (
-      <a 
-        className="font-satoshi text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline underline-offset-2 decoration-2 hover:decoration-4 transition-all"
-        target={props.href?.startsWith('http') ? '_blank' : '_self'}
-        rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-        {...props}
-      />
-    ),
+    a: (props) => {
+      const href = (props.href as string) || '';
+      const isAbsoluteHttp = /^https?:\/\//i.test(href);
+
+      let isInternalApp = false;
+      if (isAbsoluteHttp) {
+        try {
+          const { hostname } = new URL(href);
+          const host = hostname.toLowerCase();
+          if (
+            host === 'notes.app' ||
+            host.endsWith('.notes.app') ||
+            host === 'browser.app' ||
+            host.endsWith('.browser.app')
+          ) {
+            isInternalApp = true;
+          }
+        } catch {
+          // ignore
+        }
+      } else {
+        if (
+          href.startsWith('notes://') ||
+          href.startsWith('browser://') ||
+          href.startsWith('/notes.app/') ||
+          href.startsWith('notes.app/') ||
+          href.startsWith('/browser.app/') ||
+          href.startsWith('browser.app/')
+        ) {
+          isInternalApp = true;
+        }
+      }
+
+      const isExternal = isAbsoluteHttp && !isInternalApp;
+
+      return (
+        <a
+          className="font-satoshi text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline underline-offset-2 decoration-2 hover:decoration-4 transition-all"
+          target={isExternal ? '_blank' : undefined}
+          rel={isExternal ? 'noopener noreferrer' : undefined}
+          {...props}
+        />
+      );
+    },
     blockquote: (props) => (
       <blockquote className="border-l-4 border-blue-500 dark:border-blue-400 pl-6 py-4 my-8 bg-blue-50 dark:bg-blue-950/30 rounded-r-lg font-satoshi text-base md:text-lg italic text-slate-700 dark:text-slate-300" {...props} />
     ),

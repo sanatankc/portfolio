@@ -1,0 +1,12 @@
+<small>Jun 17 - Oct 23</small> 
+## Tekie — founding member, frontend lead
+
+Tekie is a school‑focused platform that uses storytelling and immersive content to teach coding and new‑age skills. After raising $1.5M from GSV, Multiply Ventures and Better Capital, Tekie was acquired by Uolo (raised $25.5M), now driving 80% of their top‑line revenue. Today, Tekie serves 500K+ students across 1000+ schools pan‑India.
+
+- *Led 0 → 1 development* of cross‑platform web (React), mobile (React Native) & desktop (Electron) apps on a Node.js/GraphQL/MongoDB/AWS stack, serving 500K+ users.
+- *Engineered Duck‑State*, a GraphQL cache built on Redux & Immutable.js that auto‑normalises responses and cuts redundant calls by 30%.
+- *Extended a CRA codebase with custom SSR and data prefetching* (akin to Next.js `getServerSideProps`), slashing page‑load by 80%.
+- *Overhauled frontend for offline‑first persistence* and proactive query prefetching, reducing P95 load time from 10s to under 1s.
+- *Optimised backend APIs* with Redis and CDN caching, cutting response time by 60%.
+- *Built multiple coding tools*: an offline Python editor powered by WASM, an HTML/CSS/JS playground, a drag‑and‑drop Blockly playground and a mobile‑based editor with IntelliSense‑style autocompletion.
+- *Drove on‑site user research at 30+ schools*, uncovering edge‑cases and refining features via direct teacher and student feedback.

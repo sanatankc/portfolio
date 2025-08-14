@@ -21,6 +21,8 @@ interface WindowProps {
   opacity?: number;
   // Optional explicit theme to use for this window
   theme?: typeof defaultWindowThemes.dark;
+  // Optional backdrop blur (in pixels) applied to the window surfaces
+  backdropBlurPx?: number;
 }
 
 const Window: React.FC<WindowProps> = ({
@@ -37,6 +39,7 @@ const Window: React.FC<WindowProps> = ({
   children,
   opacity,
   theme: themeProp,
+  backdropBlurPx,
 }) => {
   const { mode, windowOpacity } = useDesktopSettings();
   const windowTheme = themeProp ?? defaultWindowThemes[mode];
@@ -77,9 +80,11 @@ const Window: React.FC<WindowProps> = ({
         <div
           className="h-7 border-b-1 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
           style={{
-            backgroundColor: windowTheme.background,
+            backgroundColor: hexToRgba(windowTheme.background, Math.min(1, Math.max(0, effectiveOpacity))),
             borderColor: windowTheme.border,
             color: windowTheme.foreground,
+            backdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
+            WebkitBackdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
           }}
         >
           <div className='flex flex-col py-1 h-full justify-around w-[15px] mr-1'>
@@ -112,9 +117,11 @@ const Window: React.FC<WindowProps> = ({
           </div>
         </div>
         <div
-          className={`flex-grow overflow-visible`}
+          className={`flex-grow overflow-scroll`}
           style={{
             background: hexToRgba(windowTheme.background, Math.min(1, Math.max(0, effectiveOpacity))),
+            backdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
+            WebkitBackdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
           }}
           onMouseDown={onFocus}
         >

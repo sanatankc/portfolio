@@ -1,0 +1,14 @@
+<small>Oct 24 - May 25</small> 
+## Glitch.house — founding member, lead AI engineer 
+
+Glitch.house is an AI-powered discovery platform for DIY hardware enthusiasts: offering structured build guides, component lists and personalised recommendations. Launching soon on iOS, Android & Web.
+
+[Read Case Study](https://browser.app/blog/glitch-house)
+
+- *Hired and mentored a remote intern team* to develop a cross-platform frontend monorepo (Next.js, React Native & tRPC), balancing high craft with rapid MVP delivery.
+- *Built an end-to-end ETL pipeline* using *Stagehand* & *Crawl4AI* to crawl 100K+ DIY projects and third-party assets in order to feed clean, structured data into downstream AI pipelines.
+- *Engineered multi-stage AI workflows* to enforce quality/reproducibility checks, process 500K+ images, extract component metadata and generate detailed, image-rich build guides using *Goose* and *Langchain*.
+- *Created “Goose”*, a type-safe, event-driven AI workflow library with built-in context management and built an internal dashboard to orchestrate, monitor and iterate LLM workflows.
+- *Engineered an embedding-based recommender system* that leverages OpenAI embeddings and Pinecone to match users with projects via AI-generated and user-selected onboarding tags.
+
+

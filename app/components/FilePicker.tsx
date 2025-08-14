@@ -126,7 +126,7 @@ const FilePicker: React.FC<FilePickerProps> = ({ initialPath = ['~'], mode, filt
         <div className="flex items-center gap-2 p-2 border-b border-slate-200 bg-slate-50">
           <Button size="sm" onClick={goBack} disabled={histIndex <= 0}>←</Button>
           <Button size="sm" onClick={goForward} disabled={histIndex >= history.length - 1}>→</Button>
-          <Button size="sm" onClick={() => navigate('..')}>↑</Button>
+          <Button size="sm" onClick={() => navigate('..')} disabled={currentPath.length <= 1}>↑</Button>
           <Input
             className="flex-1 text-xs"
             value={pathInput}
@@ -135,28 +135,28 @@ const FilePicker: React.FC<FilePickerProps> = ({ initialPath = ['~'], mode, filt
           />
         </div>
 
-        {/* Header */}
-        <div className="grid grid-cols-[minmax(320px,1fr)_120px_120px] px-3 py-2 text-xs bg-slate-50 border-b border-slate-200">
-          <div className="font-semibold">Name</div>
-          <div className="font-semibold">Type</div>
-          <div className="font-semibold">Size</div>
-        </div>
-
-        {/* Rows */}
-        <div className="flex-1 overflow-auto outline-none" tabIndex={0}>
+        {/* Scroll area with sticky header */}
+        <div className="flex-1 overflow-auto outline-none bg-white [scrollbar-gutter:stable]" tabIndex={0}>
+          <div className="sticky top-0 z-10 grid min-w-full grid-cols-[minmax(320px,1fr)_120px_120px] px-3 py-2 text-xs bg-slate-50 border-b border-slate-200">
+            <div className="font-semibold">Name</div>
+            <div className="font-semibold">Type</div>
+            <div className="font-semibold">Size</div>
+          </div>
           {rows.map((row, idx) => (
             <button
               key={row.name}
-              className={`w-full grid grid-cols-[minmax(320px,1fr)_120px_120px] px-3 py-2 text-xs text-left border-b border-slate-100 hover:bg-slate-100 ${idx === selectedIndex ? 'bg-slate-100' : ''}`}
+              className={`w-full min-w-full block text-left border-b border-slate-100 ${idx === selectedIndex ? 'bg-slate-100' : 'bg-white'} hover:bg-slate-100`}
               onDoubleClick={() => openRow(row)}
               onMouseEnter={() => setSelectedIndex(idx)}
             >
-              <div className="flex items-center gap-2">
-                <span>{row.type === 'Folder' ? '📁' : '📄'}</span>
-                <span>{row.name}</span>
+              <div className="grid grid-cols-[minmax(320px,1fr)_120px_120px] px-3 py-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span>{row.type === 'Folder' ? '📁' : '📄'}</span>
+                  <span>{row.name}</span>
+                </div>
+                <div>{row.type}</div>
+                <div>{row.size}</div>
               </div>
-              <div>{row.type}</div>
-              <div>{row.size}</div>
             </button>
           ))}
         </div>
