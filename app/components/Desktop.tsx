@@ -24,7 +24,16 @@ interface WindowState {
   backdropBlurPx?: number;
 }
 
-type InitialWindow = string | { appId: string; payload?: unknown };
+type InitialWindow =
+  | string
+  | {
+      appId: string;
+      payload?: unknown;
+      // Optional preferred opening position as viewport percentages [0..1]
+      positionPct?: { x: number; y: number };
+      // Optional preferred opening position in pixels
+      positionPx?: { x: number; y: number };
+    };
 
 interface DesktopProps {
   initialWindows?: InitialWindow[];
@@ -61,7 +70,11 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     }
   };
 
-  const openApp = (appId: string, payload?: unknown) => {
+  const openApp = (
+    appId: string,
+    payload?: unknown,
+    options?: { preferredPositionPx?: { x: number; y: number } }
+  ) => {
     const app = getApp(appId);
     if (!app) return;
 
@@ -142,9 +155,11 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     const width = persistedAny?.width ?? Math.max(360, window.innerWidth * widthRatio);
     const height = persistedAny?.height ?? Math.max(260, window.innerHeight * heightRatio);
 
-    // Use persisted position only for the first instance of this appId
+    // Use caller-provided preferred position if provided; otherwise use persisted position for the first instance
     const isFirstInstanceForApp = windows.every(w => w.appId !== appId);
-    const preferredPos = isFirstInstanceForApp && persistedAny ? { x: persistedAny.x, y: persistedAny.y } : undefined;
+    const preferredFromOptions = options?.preferredPositionPx;
+    const preferredFromPersist = isFirstInstanceForApp && persistedAny ? { x: persistedAny.x, y: persistedAny.y } : undefined;
+    const preferredPos = preferredFromOptions ?? preferredFromPersist;
     const nonOverlap = findFirstNonOverlapping(width, height, preferredPos);
     const pos = nonOverlap ?? computeCascade(width, height);
 
@@ -172,16 +187,21 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const initialOpenTimers = useRef<number[]>([]);
   const hasOpenedInitialWindows = useRef(false);
   useEffect(() => {
-    console.log('initialWindows...', initialWindows, hasOpenedInitialWindows.current)
     if (hasOpenedInitialWindows.current || initialWindows.length === 0) return;
     hasOpenedInitialWindows.current = true;
     initialWindows.forEach((entry, index) => {
       const appId = typeof entry === 'string' ? entry : entry.appId;
       const payload = typeof entry === 'string' ? undefined : entry.payload;
-      console.log('hello...', 'app open???', 'appId', appId)
+      const positionPx = typeof entry === 'string'
+        ? undefined
+        : (entry.positionPx ?? (entry.positionPct
+          ? {
+              x: Math.round(window.innerWidth * entry.positionPct.x),
+              y: Math.round(window.innerHeight * entry.positionPct.y),
+            }
+          : undefined));
       const timer = window.setTimeout(() => {
-        console.log('hello...', 'app open???', 'appId', appId)
-        openApp(appId, payload)
+        openApp(appId, payload, positionPx ? { preferredPositionPx: positionPx } : undefined)
       }, index * 100);
       initialOpenTimers.current.push(timer);
     });
