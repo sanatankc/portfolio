@@ -16,21 +16,30 @@ function isBrowserPayload(value: unknown): value is BrowserPayload {
 
 const Browser: React.FC<AppProps> = ({ fx, payload }) => {
   void fx;
+  const toAbsoluteUrl = (u: string): string => {
+    try {
+      // If already absolute, URL constructor will keep it; if relative, base with current origin
+      return new URL(u, window.location.origin).toString();
+    } catch {
+      return u;
+    }
+  };
+
   const initialUrl = isBrowserPayload(payload) && payload?.url ? payload.url : '/blog/glitch-house';
-  const [url, setUrl] = useState<string>(initialUrl);
+  const [url, setUrl] = useState<string>(toAbsoluteUrl(initialUrl));
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (isBrowserPayload(payload) && payload?.url) setUrl(payload.url);
+    if (isBrowserPayload(payload) && payload?.url) setUrl(toAbsoluteUrl(payload.url));
   }, [payload]);
 
   const go = (next: string) => {
-    setUrl(next);
+    setUrl(toAbsoluteUrl(next));
   };
 
   const openNewTab = () => {
     if (!url) return;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(toAbsoluteUrl(url), '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -50,7 +59,7 @@ const Browser: React.FC<AppProps> = ({ fx, payload }) => {
         <Button size="sm" variant="secondary" onClick={openNewTab}>Open in new tab</Button>
       </div>
       <div className="flex-1 overflow-hidden">
-        <iframe title="browser" src={url} className="w-full h-full" />
+        <iframe title="browser" src={toAbsoluteUrl(url)} className="w-full h-full" />
       </div>
     </div>
   );

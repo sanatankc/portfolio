@@ -3,6 +3,8 @@
 
 Tekie is a school‑focused platform that uses storytelling and immersive content to teach coding and new‑age skills. After raising $1.5M from GSV, Multiply Ventures and Better Capital, Tekie was acquired by Uolo (raised $25.5M), now driving 80% of their top‑line revenue. Today, Tekie serves 500K+ students across 1000+ schools pan‑India.
 
+<small>[Visit Website](https://web.archive.org/web/20250208115343/https://www.tekie.in/)</small>
+
 - *Led 0 → 1 development* of cross‑platform web (React), mobile (React Native) & desktop (Electron) apps on a Node.js/GraphQL/MongoDB/AWS stack, serving 500K+ users.
 - *Engineered Duck‑State*, a GraphQL cache built on Redux & Immutable.js that auto‑normalises responses and cuts redundant calls by 30%.
 - *Extended a CRA codebase with custom SSR and data prefetching* (akin to Next.js `getServerSideProps`), slashing page‑load by 80%.

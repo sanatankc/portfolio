@@ -111,11 +111,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         {/* Table of Contents */}
         <TableOfContents content={post.content} showIntroduction={post.showIntroduction} />
 
-        <footer className="border-t border-slate-200 dark:border-slate-700 mt-20">
+        {/* <footer className="border-t border-slate-200 dark:border-slate-700 mt-20">
           <div className="max-w-4xl mx-auto px-6 py-8 text-center text-slate-500 dark:text-slate-500">
             <p className="font-satoshi">© 2024 - Made with ❤️ and lots of ☕</p>
           </div>
-        </footer>
+        </footer> */}
       </div>
     </GlobalImageProvider>
   );

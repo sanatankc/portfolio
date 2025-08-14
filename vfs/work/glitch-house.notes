@@ -3,7 +3,7 @@
 
 Glitch.house is an AI-powered discovery platform for DIY hardware enthusiasts: offering structured build guides, component lists and personalised recommendations. Launching soon on iOS, Android & Web.
 
-[Read Case Study](https://browser.app/blog/glitch-house)
+<small>[Read Case Study](https://browser.app/blog/glitch-house)</small>
 
 - *Hired and mentored a remote intern team* to develop a cross-platform frontend monorepo (Next.js, React Native & tRPC), balancing high craft with rapid MVP delivery.
 - *Built an end-to-end ETL pipeline* using *Stagehand* & *Crawl4AI* to crawl 100K+ DIY projects and third-party assets in order to feed clean, structured data into downstream AI pipelines.

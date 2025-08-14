@@ -11,13 +11,12 @@ export default function BlogPage() {
       <header className="border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="font-satoshi text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
-              ← Back to Portfolio
-            </Link>
             <h1 className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100">
-              Blog
+              // thoughts
             </h1>
-            <div></div>
+            <Link href="/" className="font-satoshi text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+              Portfolio
+            </Link>
           </div>
         </div>
       </header>
@@ -25,14 +24,11 @@ export default function BlogPage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-6 py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h2 className="font-mono text-4xl md:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-            Welcome to my Blog
-          </h2>
+        {/* <div className="text-center mb-16">
           <p className="font-satoshi text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Thoughts, ideas, and stories about technology, design, and the craft of building digital experiences.
+          my 
           </p>
-        </div>
+        </div> */}
 
         {/* Blog Posts Grid */}
         <div className="space-y-8">
@@ -40,7 +36,7 @@ export default function BlogPage() {
             posts.map((post: BlogPost) => (
               <article 
                 key={post.slug} 
-                className="group bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 hover:shadow-xl hover:shadow-slate-200/20 dark:hover:shadow-slate-900/20 transition-all duration-300 hover:-translate-y-1"
+                className="groupp-8 hover:shadow-xl hover:shadow-slate-200/20 dark:hover:shadow-slate-900/20 transition-all duration-300 hover:-translate-y-1"
               >
                 <Link href={`/blog/${post.slug}`} className="block">
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
@@ -67,7 +63,7 @@ export default function BlogPage() {
                       <span>{post.readingTime}</span>
                     </div>
                     
-                    {post.tags && post.tags.length > 0 && (
+                    {/* {post.tags && post.tags.length > 0 && (
                       <div className="flex gap-2">
                         {post.tags.map((tag: string) => (
                           <span 
@@ -78,7 +74,7 @@ export default function BlogPage() {
                           </span>
                         ))}
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </Link>
               </article>
@@ -102,11 +98,11 @@ export default function BlogPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-700 mt-20">
+      {/* <footer className="border-t border-slate-200 dark:border-slate-700 mt-20">
         <div className="max-w-4xl mx-auto px-6 py-8 text-center text-slate-500 dark:text-slate-500">
           <p className="font-satoshi">© 2024 - Made with ❤️ and lots of ☕</p>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 } 
