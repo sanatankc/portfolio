@@ -34,7 +34,7 @@ function openDb(): Promise<IDBDatabase> {
 export async function saveWallpaperBlob(file: Blob): Promise<WallpaperId> {
   const db = await openDb();
   const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? (crypto as any).randomUUID()
+    ? (crypto as unknown as { randomUUID: () => string }).randomUUID()
     : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
   const tx = db.transaction(STORE_NAME, 'readwrite');
   const store = tx.objectStore(STORE_NAME);

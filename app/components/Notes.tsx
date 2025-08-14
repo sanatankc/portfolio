@@ -27,7 +27,6 @@ function stripExtension(name: string) {
 const Notes: React.FC<AppProps> = ({ fx, payload, openApp, setWindowTitle }) => {
   void fx;
   const { writeFile, mkdir, isBundledFile } = useFilesystem();
-  const fsSnapshot = useFilesystem(state => state.fs);
 
   console.log("NOtes app with payload", payload)
 
@@ -41,22 +40,23 @@ const Notes: React.FC<AppProps> = ({ fx, payload, openApp, setWindowTitle }) => 
   // Derive content directly from FS for existing files; keep local state for unsaved drafts
   const existingFileContent = useFilesystem(React.useCallback((state) => {
     if (!path) return '';
-    let current: any = state.fs as any;
+    let current: unknown = state.fs as unknown;
     for (let i = 0; i < path.length - 1; i++) {
-      if (typeof current !== 'object') return '';
-      current = current[path[i]];
+      if (typeof current !== 'object' || current === null) return '';
+      const dir = current as Record<string, unknown>;
+      current = dir[path[i]] as unknown;
       if (current === undefined) return '';
     }
-    if (typeof current !== 'object') return '';
+    if (typeof current !== 'object' || current === null) return '';
     const last = path[path.length - 1];
-    const value = current[last];
+    const value = (current as Record<string, unknown>)[last];
     return typeof value === 'string' ? value : '';
   }, [path]));
 
   // Reset draft content when creating a new note
   useEffect(() => {
     if (!initialPath) setDraftContent('');
-  }, [initialPath]);
+  }, [initialPath, setDraftContent]);
 
   const filename = useMemo(() => {
     if (path && path.length > 0) return path[path.length - 1];
@@ -67,7 +67,7 @@ const Notes: React.FC<AppProps> = ({ fx, payload, openApp, setWindowTitle }) => 
   useEffect(() => {
     const base = stripExtension(filename);
     setWindowTitle?.(base || 'Untitled');
-  }, [filename, existingFileContent, draftContent]);
+  }, [filename, existingFileContent, draftContent, setWindowTitle]);
 
   const save = () => {
     if (!path) {

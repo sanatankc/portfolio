@@ -1,10 +1,10 @@
 import Terminal from '@/app/components/Terminal';
 import React from 'react';
 import Settings from '@/app/components/Settings';
-import Chat from '@/app/components/Chat';
 import TerminalIcon from '@/app/components/TerminalIcon';
 import SettingsIcon from '@/app/components/SettingsIcon';
-import ChatIcon from '@/app/components/ChatIcon';
+// import Chat from '@/app/components/Chat';
+// import ChatIcon from '@/app/components/ChatIcon';
 import { FxPlayer } from './fx';
 import FileBrowser from '../components/FileBrowser';
 import Notes from '../components/Notes';

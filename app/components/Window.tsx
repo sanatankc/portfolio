@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Rnd } from 'react-rnd';
 import { defaultWindowThemes } from '../lib/themes';
 import { useDesktopSettings } from '../lib/store';

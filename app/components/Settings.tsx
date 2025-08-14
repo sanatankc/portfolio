@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useDesktopSettings, IconSize } from '../lib/store';
+import { useDesktopSettings } from '../lib/store';
 import { defaultWindowThemes } from '../lib/themes';
 import { AppProps } from '../lib/apps';
 import clsx from 'clsx';
 import Button from '@/app/components/ui/Button';
-import Input from '@/app/components/ui/Input';
+// import Input from '@/app/components/ui/Input';
 import { saveWallpaperBlob, resolveWallpaperUrl } from '@/app/lib/wallpapers';
 
 // Removed built-in wallpapers and URL input. The new UI uses a single
@@ -31,8 +31,8 @@ const tabs = [
 ] as const;
 
 const Settings: React.FC<AppProps> = ({ fx }) => {
-  const { wallpaper, setWallpaper, wallpapers, addWallpaper, iconSize, setIconSize, mode, setMode, windowOpacity, setWindowOpacity } = useDesktopSettings();
-  type TabValue = typeof tabs[number]['value'];
+  const { wallpaper, setWallpaper, addWallpaper, mode, setMode, setWindowOpacity } = useDesktopSettings();
+  type TabValue = (typeof tabs)[number]['value'];
   const [currentTab, setCurrentTab] = useState<TabValue>(tabs[0].value);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -239,7 +239,7 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
             </div>
           </div>
         )}
-        {currentTab==='system' && (
+        {currentTab===('system' as never) && (
           <div>
             <h2 className="text-lg font-semibold mb-2">System Info</h2>
             <ul className="space-y-1">
@@ -252,7 +252,7 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
             </ul>
           </div>
         )}
-        {currentTab==='about' && (
+        {currentTab===('about' as never) && (
           <div>
             <h2 className="text-lg font-semibold mb-2">About</h2>
             <p>This is a retro desktop portfolio built with Next.js, Zustand, and Tailwind CSS.</p>
@@ -266,7 +266,7 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
             <h2 className="text-lg font-semibold mb-2 text-red-500">Reset Desktop</h2>
             <Button variant="danger" onClick={()=>{
               setWallpaper({type:'color', value:'#222'});
-              setIconSize('regular');
+              // Reset icon size if available in store in future
               setMode('dark');
               setWindowOpacity(0.92);
               // Add more resets here as you add more settings

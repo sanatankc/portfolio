@@ -26,13 +26,13 @@ export async function GET() {
   try {
     // Root of the VFS is a single home directory '~'
     const vfsRoot = path.join(process.cwd(), 'vfs');
-    let fsObject: VfsNode = { '~': {} };
+    const fsObject: VfsNode = { '~': {} };
     if (fs.existsSync(vfsRoot)) {
       // Place contents of vfs/ into '~'
       (fsObject as { [key: string]: VfsNode })['~'] = readVfsDirectory(vfsRoot);
     }
     return NextResponse.json(fsObject);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Failed to read VFS' }, { status: 500 });
   }
 }

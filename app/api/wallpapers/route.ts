@@ -18,7 +18,7 @@ export async function GET() {
       .map((f) => `/wallpapers/${encodeURIComponent(f)}`);
 
     return NextResponse.json({ images });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ images: [] });
   }
 }

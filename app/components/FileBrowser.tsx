@@ -26,10 +26,13 @@ function isFileBrowserPayload(value: unknown): value is FileBrowserPayload {
 const FileBrowser: React.FC<AppProps> = ({ fx, openApp, payload, closeSelf }) => {
   void fx;
   const initialPath = isFileBrowserPayload(payload) && payload?.path ? payload.path : ['~'];
-  const picker: PickerMode = (isFileBrowserPayload(payload) && (payload as any).picker)
-    ? (payload as any).picker as PickerMode
-    : ({ kind: 'none' } as const);
-  const { fs, mkdir } = useFilesystem();
+  const picker: PickerMode = ((): PickerMode => {
+    if (isFileBrowserPayload(payload) && payload && 'picker' in (payload as Record<string, unknown>) && (payload as FileBrowserPayload).picker) {
+      return (payload as FileBrowserPayload).picker as PickerMode;
+    }
+    return { kind: 'none' } as const;
+  })();
+  const { fs } = useFilesystem();
   const [currentPath, setCurrentPath] = useState<string[]>(initialPath);
   const [history, setHistory] = useState<string[][]>([initialPath]);
   const [histIndex, setHistIndex] = useState<number>(0);

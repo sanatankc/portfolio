@@ -61,74 +61,6 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     }
   };
 
-  // Open initial windows after boot using the standard openApp flow
-  const initialOpenTimers = useRef<number[]>([]);
-  const hasOpenedInitialWindows = useRef(false);
-  useEffect(() => {
-    console.log('initialWindows...', initialWindows, hasOpenedInitialWindows.current)
-    if (hasOpenedInitialWindows.current || initialWindows.length === 0) return;
-    hasOpenedInitialWindows.current = true;
-    initialWindows.forEach((entry, index) => {
-      const appId = typeof entry === 'string' ? entry : entry.appId;
-      const payload = typeof entry === 'string' ? undefined : entry.payload;
-      console.log('hello...', 'app open???', 'appId', appId)
-      const timer = window.setTimeout(() => {
-        console.log('hello...', 'app open???', 'appId', appId)
-        openApp(appId, payload)
-      }, index * 100);
-      initialOpenTimers.current.push(timer);
-    });
-    return () => {
-      console.log('initialOpenTimers... canceling', initialOpenTimers.current)
-      // initialOpenTimers.current.forEach(id => clearTimeout(id));
-      // initialOpenTimers.current = [];
-    };
-  }, [initialWindows]);
-
-  const bgStyle: React.CSSProperties = {};
-  const [resolvedBg, setResolvedBg] = useState<string | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (wallpaper.type === 'image') {
-        // Migrate legacy data: URLs to IndexedDB for shorter, efficient blob URLs
-        if (typeof wallpaper.value === 'string' && wallpaper.value.startsWith('data:')) {
-          try {
-            const res = await fetch(wallpaper.value);
-            const blob = await res.blob();
-            const id = await saveWallpaperBlob(blob);
-            const idRef = `idb:${id}`;
-            addWallpaper({ type: 'image', value: idRef });
-            setWallpaper({ type: 'image', value: idRef });
-          } catch {
-            // ignore migration failure; fall back to using data URL as-is
-          }
-        }
-        const url = await resolveWallpaperUrl(wallpaper.value);
-        if (!cancelled) setResolvedBg(url);
-      } else {
-        setResolvedBg(null);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [wallpaper]);
-  if (wallpaper.type === 'image') {
-    bgStyle.backgroundImage = resolvedBg ? `url('${resolvedBg}')` : undefined;
-  }
-  bgStyle.backgroundSize = 'cover';
-  bgStyle.backgroundPosition = 'center';
-  if (wallpaper.type === 'color') {
-    bgStyle.background = wallpaper.value;
-  } else if (wallpaper.type === 'image') {
-  }
-  if (mode === 'dark') {
-    bgStyle.backgroundColor = '#18181b';
-    bgStyle.color = '#fff';
-  } else {
-    bgStyle.backgroundColor = '#f3f4f6';
-    bgStyle.color = '#222';
-  }
-
   const openApp = (appId: string, payload?: unknown) => {
     const app = getApp(appId);
     if (!app) return;
@@ -136,13 +68,13 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     // If a window with same appId and same payload exists, bring it to front
     const stableStringify = (obj: unknown): string => {
       const seen = new WeakSet();
-      const stringify = (value: any): any => {
+      const stringify = (value: unknown): unknown => {
         if (value && typeof value === 'object') {
           if (seen.has(value)) return undefined;
           seen.add(value);
           if (Array.isArray(value)) return value.map(stringify);
-          return Object.keys(value).sort().reduce((acc: any, key) => {
-            acc[key] = stringify((value as any)[key]);
+          return Object.keys(value as Record<string, unknown>).sort().reduce((acc: Record<string, unknown>, key) => {
+            acc[key] = stringify((value as Record<string, unknown>)[key]);
             return acc;
           }, {});
         }
@@ -235,6 +167,75 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     ]);
     return id;
   };
+
+  // Open initial windows after boot using the standard openApp flow
+  const initialOpenTimers = useRef<number[]>([]);
+  const hasOpenedInitialWindows = useRef(false);
+  useEffect(() => {
+    console.log('initialWindows...', initialWindows, hasOpenedInitialWindows.current)
+    if (hasOpenedInitialWindows.current || initialWindows.length === 0) return;
+    hasOpenedInitialWindows.current = true;
+    initialWindows.forEach((entry, index) => {
+      const appId = typeof entry === 'string' ? entry : entry.appId;
+      const payload = typeof entry === 'string' ? undefined : entry.payload;
+      console.log('hello...', 'app open???', 'appId', appId)
+      const timer = window.setTimeout(() => {
+        console.log('hello...', 'app open???', 'appId', appId)
+        openApp(appId, payload)
+      }, index * 100);
+      initialOpenTimers.current.push(timer);
+    });
+    return () => {
+      console.log('initialOpenTimers... canceling', initialOpenTimers.current)
+      const timersAtCleanup = [...initialOpenTimers.current];
+      timersAtCleanup.forEach(id => clearTimeout(id));
+    };
+  }, [initialWindows, openApp]);
+
+  const bgStyle: React.CSSProperties = {};
+  const [resolvedBg, setResolvedBg] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (wallpaper.type === 'image') {
+        // Migrate legacy data: URLs to IndexedDB for shorter, efficient blob URLs
+        if (typeof wallpaper.value === 'string' && wallpaper.value.startsWith('data:')) {
+          try {
+            const res = await fetch(wallpaper.value);
+            const blob = await res.blob();
+            const id = await saveWallpaperBlob(blob);
+            const idRef = `idb:${id}`;
+            addWallpaper({ type: 'image', value: idRef });
+            setWallpaper({ type: 'image', value: idRef });
+          } catch {
+            // ignore migration failure; fall back to using data URL as-is
+          }
+        }
+        const url = await resolveWallpaperUrl(wallpaper.value);
+        if (!cancelled) setResolvedBg(url);
+      } else {
+        setResolvedBg(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [wallpaper, addWallpaper, setWallpaper]);
+  if (wallpaper.type === 'image') {
+    bgStyle.backgroundImage = resolvedBg ? `url('${resolvedBg}')` : undefined;
+  }
+  bgStyle.backgroundSize = 'cover';
+  bgStyle.backgroundPosition = 'center';
+  if (wallpaper.type === 'color') {
+    bgStyle.background = wallpaper.value;
+  } else if (wallpaper.type === 'image') {
+  }
+  if (mode === 'dark') {
+    bgStyle.backgroundColor = '#18181b';
+    bgStyle.color = '#fff';
+  } else {
+    bgStyle.backgroundColor = '#f3f4f6';
+    bgStyle.color = '#222';
+  }
+
   const setWindowTitle = (id: number, title: string) => {
     setWindows(prev => prev.map(w => {
       if (w.id !== id) return w;

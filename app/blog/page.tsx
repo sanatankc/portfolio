@@ -11,9 +11,7 @@ export default function BlogPage() {
       <header className="border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100">
-              // thoughts
-            </h1>
+            <h1 className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100">{"// thoughts"}</h1>
             <Link href="/" className="font-satoshi text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
               Portfolio
             </Link>
