@@ -20,6 +20,14 @@ interface ChatTheme {
 
 import { AppProps } from '../lib/apps';
 
+type WindowTheme = {
+  background: string;
+  foreground: string;
+  closeButton: string;
+  closeButtonText: string;
+  border: string;
+};
+
 // Type definitions for tool invocation
 interface ToolInvocation {
   state: 'partial-call' | 'call' | 'result';
@@ -45,7 +53,7 @@ const defaultTheme: ChatTheme = {
 const ToolInvocationCard = ({ toolInvocation, toolName, onThemeChange }: { 
   toolInvocation: ToolInvocation; 
   toolName: string;
-  onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; border: string }) => void;
+  onThemeChange?: (theme: WindowTheme) => void;
 }) => {
   const getToolIcon = (name: string) => {
     switch (name) {
@@ -138,7 +146,7 @@ const WallpaperSelector = ({ wallpaperData, onThemeChange }: {
       color: string;
     }>;
   };
-  onThemeChange?: (theme: { background: string; foreground: string; closeButton: string; border: string }) => void;
+  onThemeChange?: (theme: WindowTheme) => void;
 }) => {
   const { addWallpaper } = useDesktopSettings();
   const [selectedImageId, setSelectedImageId] = useState<string>(wallpaperData.images[0]?.id || '');
@@ -161,6 +169,7 @@ const WallpaperSelector = ({ wallpaperData, onThemeChange }: {
           background: firstImage.color || '#111827',
           foreground: '#ffffff',
           closeButton: '#ef4444',
+          closeButtonText: '#ffffff',
           border: firstImage.color || '#374151',
         });
       }
@@ -184,6 +193,7 @@ const WallpaperSelector = ({ wallpaperData, onThemeChange }: {
         background: image.color || '#111827',
         foreground: '#ffffff',
         closeButton: '#ef4444',
+        closeButtonText: '#ffffff',
         border: image.color || '#374151',
       });
     }
@@ -305,6 +315,7 @@ export default function Chat({ fx, onThemeChange }: AppProps) {
         background: '#111827', // gray-900
         foreground: '#f9fafb', // gray-100
         closeButton: '#ef4444', // red-500
+        closeButtonText: '#ffffff',
         border: '#374151', // gray-700
       });
     }

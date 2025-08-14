@@ -24,6 +24,8 @@ export interface AppProps {
   closeSelf?: () => void;
   // Optional per-window data
   payload?: unknown;
+  // Optional: allow app to request a window theme change (used by Chat/tool UIs)
+  onThemeChange?: (theme: typeof defaultWindowThemes.dark) => void;
 }
 
 export interface App {
