@@ -54,7 +54,9 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   // --- Geometry persistence helpers ---
   const loadGeometry = (appId: string) => {
     try {
-      const raw = localStorage.getItem(`wingeom:${appId}`);
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      const key = isMobile ? `wingeom:mobile:${appId}` : `wingeom:${appId}`;
+      const raw = localStorage.getItem(key);
       if (!raw) return null as null | { width: number; height: number; x: number; y: number };
       return JSON.parse(raw) as { width: number; height: number; x: number; y: number };
     } catch {
@@ -64,7 +66,9 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
 
   const saveGeometry = (appId: string, geom: { width: number; height: number; x: number; y: number }) => {
     try {
-      localStorage.setItem(`wingeom:${appId}`, JSON.stringify(geom));
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      const key = isMobile ? `wingeom:mobile:${appId}` : `wingeom:${appId}`;
+      localStorage.setItem(key, JSON.stringify(geom));
     } catch {
       // ignore
     }
@@ -152,7 +156,9 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
 
     // Determine window size
     const persistedAny = loadGeometry(appId);
-    const width = persistedAny?.width ?? Math.max(360, window.innerWidth * widthRatio);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+    const width = isMobile ? (window.innerWidth * 0.9) : Math.max(360, window.innerWidth * widthRatio);
     const height = persistedAny?.height ?? Math.max(260, window.innerHeight * heightRatio);
 
     // Use caller-provided preferred position if provided; otherwise use persisted position for the first instance
@@ -161,7 +167,14 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     const preferredFromPersist = isFirstInstanceForApp && persistedAny ? { x: persistedAny.x, y: persistedAny.y } : undefined;
     const preferredPos = preferredFromOptions ?? preferredFromPersist;
     const nonOverlap = findFirstNonOverlapping(width, height, preferredPos);
-    const pos = nonOverlap ?? computeCascade(width, height);
+    let pos = nonOverlap ?? computeCascade(width, height);
+
+    // if (isMobile) {
+    //   pos.x = (window.innerWidth - width) / 2;
+    // }
+
+
+    console.log("position ---> ", pos, width, window.innerWidth * 0.9, window.innerWidth, isMobile)
 
     const id = nextId++;
     setWindows(prev => [
