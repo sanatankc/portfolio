@@ -8,6 +8,7 @@ import { useDesktopSettings } from '../lib/store';
 import { defaultWindowThemes } from '../lib/themes';
 import { FxPlayer } from '../lib/fx';
 import { resolveWallpaperUrl, saveWallpaperBlob } from '../lib/wallpapers';
+import MobileNav from './MobileNav';
 
 interface WindowState {
   id: number;
@@ -24,16 +25,22 @@ interface WindowState {
   backdropBlurPx?: number;
 }
 
-type InitialWindow =
-  | string
-  | {
-      appId: string;
-      payload?: unknown;
-      // Optional preferred opening position as viewport percentages [0..1]
-      positionPct?: { x: number; y: number };
-      // Optional preferred opening position in pixels
-      positionPx?: { x: number; y: number };
-    };
+type Position = { x: number; y: number };
+
+type InitialWindowObject = {
+  appId: string;
+  payload?: unknown;
+  positionPct?: {
+    desktop?: Position;
+    mobile?: Position;
+  };
+  positionPx?: {
+    desktop?: Position;
+    mobile?: Position;
+  };
+};
+
+type InitialWindow = string | InitialWindowObject;
 
 interface DesktopProps {
   initialWindows?: InitialWindow[];
@@ -44,6 +51,8 @@ let nextId = 1;
 
 const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const [windows, setWindows] = useState<WindowState[]>([]);
+  const windowsRef = useRef(windows);
+  windowsRef.current = windows;
   const apps = getApps();
 
   console.log('apps...', apps)
@@ -66,9 +75,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
 
   const saveGeometry = (appId: string, geom: { width: number; height: number; x: number; y: number }) => {
     try {
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      const key = isMobile ? `wingeom:mobile:${appId}` : `wingeom:${appId}`;
-      localStorage.setItem(key, JSON.stringify(geom));
+      // Persistence disabled
     } catch {
       // ignore
     }
@@ -101,7 +108,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     };
 
     const payloadKey = stableStringify(payload);
-    const existing = windows.find(w => w.appId === appId && stableStringify(w.payload) === payloadKey);
+    const existing = windowsRef.current.find(w => w.appId === appId && stableStringify(w.payload) === payloadKey);
     if (existing) {
       bringToFront(existing.id);
       return existing.id;
@@ -117,7 +124,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     const rectsIntersect = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }) => {
       return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
     };
-    const existingRects = windows.map(w => ({ x: w.x, y: w.y, w: w.width, h: w.height }));
+    const existingRects = windowsRef.current.map(w => ({ x: w.x, y: w.y, w: w.width, h: w.height }));
     const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
     const findFirstNonOverlapping = (w: number, h: number, preferred?: { x: number; y: number }) => {
       const margin = 8;
@@ -144,7 +151,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
       const baseX = Math.round(window.innerWidth * 0.1);
       const baseY = Math.round(window.innerHeight * 0.1);
       const step = 28;
-      const idx = windows.length;
+      const idx = windowsRef.current.length;
       let x = baseX + idx * step;
       let y = baseY + idx * step;
       const maxX = window.innerWidth - w - 8;
@@ -155,26 +162,34 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     };
 
     // Determine window size
-    const persistedAny = loadGeometry(appId);
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
     const width = isMobile ? (window.innerWidth * 0.9) : Math.max(360, window.innerWidth * widthRatio);
-    const height = persistedAny?.height ?? Math.max(260, window.innerHeight * heightRatio);
+    const height = Math.max(260, window.innerHeight * heightRatio);
 
-    // Use caller-provided preferred position if provided; otherwise use persisted position for the first instance
-    const isFirstInstanceForApp = windows.every(w => w.appId !== appId);
-    const preferredFromOptions = options?.preferredPositionPx;
-    const preferredFromPersist = isFirstInstanceForApp && persistedAny ? { x: persistedAny.x, y: persistedAny.y } : undefined;
-    const preferredPos = preferredFromOptions ?? preferredFromPersist;
+    // Use caller-provided preferred position if provided
+    const preferredPos = options?.preferredPositionPx;
     const nonOverlap = findFirstNonOverlapping(width, height, preferredPos);
-    let pos = nonOverlap ?? computeCascade(width, height);
+    let pos = 
+      preferredPos
+        ? preferredPos
+        : nonOverlap ?? computeCascade(width, height);
 
     // if (isMobile) {
-    //   pos.x = (window.innerWidth - width) / 2;
+    //   const centeredX = (window.innerWidth - width) / 2;
+    //   const cascadeBaseX = Math.round(window.innerWidth * 0.1);
+    //   const xOffset = centeredX - cascadeBaseX;
+    //   pos.x += xOffset;
+
+    //   // Make sure it doesn't go off-screen
+    //   const maxX = window.innerWidth - width - 8;
+    //   if (pos.x > maxX) {
+    //     pos.x = maxX;
+    //   }
+    //   if (pos.x < 8) {
+    //     pos.x = 8;
+    //   }
     // }
-
-
-    console.log("position ---> ", pos, width, window.innerWidth * 0.9, window.innerWidth, isMobile)
 
     const id = nextId++;
     setWindows(prev => [
@@ -202,17 +217,28 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   useEffect(() => {
     if (hasOpenedInitialWindows.current || initialWindows.length === 0) return;
     hasOpenedInitialWindows.current = true;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     initialWindows.forEach((entry, index) => {
-      const appId = typeof entry === 'string' ? entry : entry.appId;
-      const payload = typeof entry === 'string' ? undefined : entry.payload;
-      const positionPx = typeof entry === 'string'
-        ? undefined
-        : (entry.positionPx ?? (entry.positionPct
-          ? {
-              x: Math.round(window.innerWidth * entry.positionPct.x),
-              y: Math.round(window.innerHeight * entry.positionPct.y),
-            }
-          : undefined));
+      const appId = typeof entry === 'string' ? entry : (entry as InitialWindowObject).appId;
+      const payload = typeof entry === 'string' ? undefined : (entry as InitialWindowObject).payload;
+      
+      let positionPx: Position | undefined = undefined;
+      if (typeof entry !== 'string') {
+        const entryObj = entry as InitialWindowObject;
+        if (entryObj.positionPx) {
+          positionPx = isMobile ? entryObj.positionPx.mobile : entryObj.positionPx.desktop;
+        } else if (entryObj.positionPct) {
+          const pct = isMobile ? entryObj.positionPct.mobile : entryObj.positionPct.desktop;
+          if (pct) {
+            positionPx = {
+              x: Math.round(window.innerWidth * pct.x),
+              y: Math.round(window.innerHeight * pct.y),
+            };
+          }
+        }
+      }
+
       const timer = window.setTimeout(() => {
         openApp(appId, payload, positionPx ? { preferredPositionPx: positionPx } : undefined)
       }, index * 100);
@@ -321,6 +347,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
 
 
   console.log('wins', windows)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   return (
     <div className="w-screen h-screen relative" style={bgStyle}>
       <div className="absolute left-0 top-0 h-full flex flex-col gap-8 p-4 z-0">
@@ -362,6 +389,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
           </Window>
         );
       })}
+      {isMobile && <MobileNav />}
     </div>
   );
 };
