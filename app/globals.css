@@ -436,11 +436,14 @@ body {
   margin-top: 0.9rem;
 }
 
+.prose p:first-child {
+  margin-top: 0rem;
+}
+
 .prose p:has(small) {
   margin-bottom: 0rem;
   margin-top: 0.9rem;
 }
-
 
 .prose.text-white {
   color: #fff !important;
