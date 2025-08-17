@@ -17,6 +17,7 @@ import {
   markdownShortcutPlugin,
   codeBlockPlugin,
   tablePlugin,
+  imagePlugin,
   // diffSourcePlugin,
   thematicBreakPlugin
 } from '@mdxeditor/editor';
@@ -51,6 +52,7 @@ const NotesMdxEditor: React.FC<NotesMdxEditorProps> = ({ value, onChange, readOn
     codeBlockPlugin({ defaultCodeBlockLanguage: 'markdown' }),
     markdownShortcutPlugin(),
     tablePlugin(),
+    imagePlugin(),
   ] as MDXEditorProps['plugins'], []);
 
   return (

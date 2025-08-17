@@ -436,8 +436,9 @@ body {
   margin-top: 0.9rem;
 }
 
-.prose p:first-child {
+.prose > p:first-of-type {
   margin-top: 0rem;
+  margin-bottom: 0rem;
 }
 
 .prose p:has(small) {
@@ -451,4 +452,9 @@ body {
 
 .prose.text-black {
   color: #000 !important;
+}
+
+.prose div.no-space p {
+  margin-top: 0rem ;
+  margin-bottom: 0rem;
 }

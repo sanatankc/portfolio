@@ -1,6 +1,14 @@
-Hi, I'm **Sanatan** 👋
+<img
+  src="./avatar.png"
+  alt="An image"
+  class="w-[60px] mb-1"
+/>
 
-A full-stack engineer with **8+ YOE**, developing _0 → 1_ products, building teams, and working across the stack. 
+<div class="no-space">
+Hi, I'm **Sanatan** 👋
+</div>
+
+An engineer with **8+ YOE**, developing _0 → 1_ products, building teams, and working across the stack. 
 
 
 I’ve built and led engineering teams, set technical direction and delivered high-quality products in fast-paced, early-stage startups working on everything from scrappy MVPs to scaling in production.
