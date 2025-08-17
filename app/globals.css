@@ -443,7 +443,7 @@ body {
 
 .prose p:has(small) {
   margin-bottom: 0rem;
-  margin-top: 0.9rem;
+  margin-top: 0rem;
 }
 
 .prose.text-white {

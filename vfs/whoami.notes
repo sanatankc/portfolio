@@ -2,6 +2,7 @@
   src="./avatar.png"
   alt="An image"
   class="w-[60px] mb-1"
+  title="yes, this is ai art"
 />
 
 <div class="no-space">

@@ -20,6 +20,9 @@ interface DesktopSettingsState {
   setWindowOpacity: (opacity: number) => void;
   isAppSwitcherVisible: boolean;
   toggleAppSwitcher: () => void;
+  areAllWindowsHidden: boolean;
+  hideAllWindows: () => void;
+  showAllWindows: () => void;
   hydrate: () => void;
   persist: () => void;
 }
@@ -58,6 +61,9 @@ export const useDesktopSettings = create<DesktopSettingsState>((set, get) => ({
   setWindowOpacity: (windowOpacity) => { set({ windowOpacity }); get().persist(); },
   isAppSwitcherVisible: false,
   toggleAppSwitcher: () => set(state => ({ isAppSwitcherVisible: !state.isAppSwitcherVisible })),
+  areAllWindowsHidden: false,
+  hideAllWindows: () => set({ areAllWindowsHidden: true }),
+  showAllWindows: () => set({ areAllWindowsHidden: false }),
   hydrate: () => {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {

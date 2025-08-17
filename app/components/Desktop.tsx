@@ -57,7 +57,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const apps = getApps();
 
   console.log('apps...', apps)
-  const { wallpaper, mode, addWallpaper, setWallpaper, isAppSwitcherVisible, toggleAppSwitcher } = useDesktopSettings();
+  const { wallpaper, mode, addWallpaper, setWallpaper, isAppSwitcherVisible, toggleAppSwitcher, areAllWindowsHidden } = useDesktopSettings();
   const silentFx: FxPlayer = { play: () => {}, isLoaded: () => false };
   const effectiveFx = fx ?? silentFx;
 
@@ -359,7 +359,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
         ))}
       </div>
 
-      {windows.map(win => {
+      {!areAllWindowsHidden && windows.map(win => {
         const app = getApp(win.appId);
         if (!app) return null;
         const AppComponent = app.component;
