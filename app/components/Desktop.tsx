@@ -150,7 +150,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     // Use caller-provided preferred position if provided
     const preferredPos = options?.preferredPositionPx;
     const nonOverlap = findFirstNonOverlapping(width, height, preferredPos);
-    let pos = 
+    const pos = 
       preferredPos
         ? preferredPos
         : nonOverlap ?? computeCascade(width, height);
