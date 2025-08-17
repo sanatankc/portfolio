@@ -9,6 +9,7 @@ import { defaultWindowThemes } from '../lib/themes';
 import { FxPlayer } from '../lib/fx';
 import { resolveWallpaperUrl, saveWallpaperBlob } from '../lib/wallpapers';
 import MobileNav from './MobileNav';
+import AppSwitcherView from './AppSwitcherView';
 
 interface WindowState {
   id: number;
@@ -56,7 +57,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const apps = getApps();
 
   console.log('apps...', apps)
-  const { wallpaper, mode, addWallpaper, setWallpaper } = useDesktopSettings();
+  const { wallpaper, mode, addWallpaper, setWallpaper, isAppSwitcherVisible, toggleAppSwitcher } = useDesktopSettings();
   const silentFx: FxPlayer = { play: () => {}, isLoaded: () => false };
   const effectiveFx = fx ?? silentFx;
 
@@ -389,6 +390,14 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
           </Window>
         );
       })}
+      {isAppSwitcherVisible && (
+        <AppSwitcherView
+          windows={windows}
+          getApp={getApp}
+          bringToFront={bringToFront}
+          toggleAppSwitcher={toggleAppSwitcher}
+        />
+      )}
       {isMobile && <MobileNav />}
     </div>
   );

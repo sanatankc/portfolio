@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useDesktopSettings } from '../lib/store';
 
 const BackIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -22,6 +23,7 @@ const OverviewIcon = () => (
 
 
 const MobileNav: React.FC = () => {
+  const { toggleAppSwitcher } = useDesktopSettings();
   return (
     <div className="fixed bottom-0 left-0 right-0 h-[calc(60px+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-black/30 backdrop-blur-lg flex justify-around items-center z-[100000]">
       <button className="p-2 text-white">
@@ -30,7 +32,7 @@ const MobileNav: React.FC = () => {
       <button className="p-2 text-white">
         <HomeIcon />
       </button>
-      <button className="p-2 text-white">
+      <button className="p-2 text-white" onClick={toggleAppSwitcher}>
         <OverviewIcon />
       </button>
     </div>

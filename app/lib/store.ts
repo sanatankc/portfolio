@@ -18,6 +18,8 @@ interface DesktopSettingsState {
   // Opacity applied to window backgrounds (1 = opaque). Range [0.6, 1]
   windowOpacity: number;
   setWindowOpacity: (opacity: number) => void;
+  isAppSwitcherVisible: boolean;
+  toggleAppSwitcher: () => void;
   hydrate: () => void;
   persist: () => void;
 }
@@ -54,6 +56,8 @@ export const useDesktopSettings = create<DesktopSettingsState>((set, get) => ({
   setMode: (mode) => { set({ mode }); get().persist(); },
   windowOpacity: 1,
   setWindowOpacity: (windowOpacity) => { set({ windowOpacity }); get().persist(); },
+  isAppSwitcherVisible: false,
+  toggleAppSwitcher: () => set(state => ({ isAppSwitcherVisible: !state.isAppSwitcherVisible })),
   hydrate: () => {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {

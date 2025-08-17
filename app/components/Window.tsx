@@ -17,6 +17,7 @@ interface WindowProps {
   onDragStop: (x: number, y: number) => void;
   onResizeStop: (width: number, height: number, x: number, y: number) => void;
   children: React.ReactElement;
+  isSwitcherMode?: boolean;
   // Optional per-window background opacity override (1 = opaque)
   opacity?: number;
   // Optional explicit theme to use for this window
@@ -37,6 +38,7 @@ const Window: React.FC<WindowProps> = ({
   onDragStop,
   onResizeStop,
   children,
+  isSwitcherMode = false,
   opacity,
   theme: themeProp,
   backdropBlurPx,
@@ -55,6 +57,69 @@ const Window: React.FC<WindowProps> = ({
     const b = bigint & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
+
+  const WindowContent = (
+    <div className={`w-full h-full flex flex-col`}>
+      <div
+        className="h-7 border-b-1 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
+        style={{
+          backgroundColor: hexToRgba(windowTheme.background, Math.min(1, Math.max(0, effectiveOpacity))),
+          borderColor: windowTheme.border,
+          color: windowTheme.foreground,
+          backdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
+          WebkitBackdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
+        }}
+      >
+        <div className='flex flex-col py-1 h-full justify-around w-[15px] mr-1'>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="w-[20px] h-[20px] border-pixel-xs-black flex items-center justify-center"
+            style={{borderColor: windowTheme.foreground, backgroundColor: windowTheme.closeButton, color: windowTheme.closeButtonText}}
+        >
+          <i className="hn hn-times-solid text-xs"></i>
+        </button>
+        <div className='flex flex-col py-1 h-full justify-around flex-1 ml-1'>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+        </div>
+        <div className="w-4 h-4"></div>
+        <span className="font-mono">{title}</span>
+        <div className="w-4 h-4"></div>
+        <div className='flex flex-col py-1 h-full justify-around flex-1'>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+          <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
+        </div>
+      </div>
+      <div
+        className={`flex-grow overflow-scroll`}
+        style={{
+          background: hexToRgba(windowTheme.background, Math.min(1, Math.max(0, effectiveOpacity))),
+          backdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
+          WebkitBackdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
+        }}
+        onMouseDown={onFocus}
+      >
+        {children}
+      </div>
+    </div>
+  );
+
+  if (isSwitcherMode) {
+    return (
+      <div style={{ width, height }} className="border-pixel-sm-[#c0c0c0]">
+        {WindowContent}
+      </div>
+    );
+  }
 
   return (
     <Rnd
@@ -76,58 +141,7 @@ const Window: React.FC<WindowProps> = ({
       dragHandleClassName="window-title-bar"
       className="border-pixel-sm-[#c0c0c0]"
     >
-      <div className={`w-full h-full flex flex-col`}>
-        <div
-          className="h-7 border-b-1 flex items-center justify-between px-2 flex-shrink-0 window-title-bar cursor-move"
-          style={{
-            backgroundColor: hexToRgba(windowTheme.background, Math.min(1, Math.max(0, effectiveOpacity))),
-            borderColor: windowTheme.border,
-            color: windowTheme.foreground,
-            backdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
-            WebkitBackdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
-          }}
-        >
-          <div className='flex flex-col py-1 h-full justify-around w-[15px] mr-1'>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="w-[20px] h-[20px] border-pixel-xs-black flex items-center justify-center"
-              style={{borderColor: windowTheme.foreground, backgroundColor: windowTheme.closeButton, color: windowTheme.closeButtonText}}
-          >
-            <i className="hn hn-times-solid text-xs"></i>
-          </button>
-          <div className='flex flex-col py-1 h-full justify-around flex-1 ml-1'>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-          </div>
-          <div className="w-4 h-4"></div>
-          <span className="font-mono">{title}</span>
-          <div className="w-4 h-4"></div>
-          <div className='flex flex-col py-1 h-full justify-around flex-1'>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-            <div className='border-t w-full' style={{ borderColor: windowTheme.foreground }}></div>
-          </div>
-        </div>
-        <div
-          className={`flex-grow overflow-scroll`}
-          style={{
-            background: hexToRgba(windowTheme.background, Math.min(1, Math.max(0, effectiveOpacity))),
-            backdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
-            WebkitBackdropFilter: backdropBlurPx ? `blur(${backdropBlurPx}px)` : undefined,
-          }}
-          onMouseDown={onFocus}
-        >
-          {children}
-        </div>
-      </div>
+      {WindowContent}
     </Rnd>
   );
 };
