@@ -61,27 +61,6 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const silentFx: FxPlayer = { play: () => {}, isLoaded: () => false };
   const effectiveFx = fx ?? silentFx;
 
-  // --- Geometry persistence helpers ---
-  const loadGeometry = (appId: string) => {
-    try {
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      const key = isMobile ? `wingeom:mobile:${appId}` : `wingeom:${appId}`;
-      const raw = localStorage.getItem(key);
-      if (!raw) return null as null | { width: number; height: number; x: number; y: number };
-      return JSON.parse(raw) as { width: number; height: number; x: number; y: number };
-    } catch {
-      return null;
-    }
-  };
-
-  const saveGeometry = (appId: string, geom: { width: number; height: number; x: number; y: number }) => {
-    try {
-      // Persistence disabled
-    } catch {
-      // ignore
-    }
-  };
-
   const openApp = (
     appId: string,
     payload?: unknown,
@@ -326,7 +305,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     setWindows(prev => prev.map(w => {
       if (w.id !== id) return w;
       const updated = { ...w, x: snappedX, y: snappedY };
-      saveGeometry(w.appId, { width: updated.width, height: updated.height, x: updated.x, y: updated.y });
+      
       return updated;
     }));
   };
@@ -337,7 +316,6 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     setWindows(prev => prev.map(w => {
       if (w.id !== id) return w;
       const updated = { ...w, ...snapped };
-      saveGeometry(w.appId, { width: updated.width, height: updated.height, x: updated.x, y: updated.y });
       return updated;
     }));
   };
