@@ -3,7 +3,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Window from './Window'; // Assuming Window can be adapted for this view
-import { getApp } from '../lib/apps';
 
 // Define the types for the props we're receiving from Desktop.tsx
 interface WindowState {
@@ -16,14 +15,14 @@ interface WindowState {
   zIndex: number;
   payload?: unknown;
   opacity?: number;
-  theme?: any; // Replace 'any' with a more specific theme type if available
+  theme?: unknown; // Replace 'any' with a more specific theme type if available
   titleOverride?: string;
   backdropBlurPx?: number;
 }
 
 interface AppSwitcherViewProps {
   windows: WindowState[];
-  getApp: (appId: string) => any; // Replace 'any' with a more specific app type
+  getApp: (appId: string) => unknown; // Replace 'any' with a more specific app type
   bringToFront: (id: number) => void;
   toggleAppSwitcher: () => void;
 }
