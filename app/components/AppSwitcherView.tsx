@@ -3,6 +3,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Window from './Window'; // Assuming Window can be adapted for this view
+import { App } from '../lib/apps';
+import { FxPlayer } from '../lib/fx';
 
 // Define the types for the props we're receiving from Desktop.tsx
 interface WindowState {
@@ -50,7 +52,7 @@ const AppSwitcherView: React.FC<AppSwitcherViewProps> = ({
         onClick={toggleAppSwitcher} // Close switcher when clicking the background
       >
         {windows.map((win, index) => {
-          const app = getApp(win.appId);
+          const app = getApp(win.appId) as App;
           if (!app) return null;
           const AppComponent = app.component;
 
@@ -88,6 +90,7 @@ const AppSwitcherView: React.FC<AppSwitcherViewProps> = ({
                     openApp={() => {}}
                     closeSelf={() => {}}
                     setWindowTitle={() => {}}
+                    fx={null as unknown as FxPlayer}
                   />
                 </Window>
               </div>
