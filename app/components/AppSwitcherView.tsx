@@ -42,6 +42,7 @@ const AppSwitcherView: React.FC<AppSwitcherViewProps> = ({
 
   const focusedWindowId = windows.reduce((max, w) => (w.zIndex > max.zIndex ? w : max), windows[0])?.id;
 
+
   return (
     <AnimatePresence>
       <motion.div

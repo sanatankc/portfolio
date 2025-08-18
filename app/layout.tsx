@@ -70,6 +70,9 @@ export default function RootLayout({
     <html lang="en">
       <head> 
         {/* <link rel="stylesheet" href="path/to/@hackernoon/pixel-icon-library/fonts/iconfont.css" /> */}
+        <script defer data-domain="sanatankc.vercel.app" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.js"></script>
+        <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${sourceSans.variable} ${crimsonText.variable} ${satoshi.variable} antialiased`}
