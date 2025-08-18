@@ -43,7 +43,7 @@ const Window: React.FC<WindowProps> = ({
   theme: themeProp,
   backdropBlurPx,
 }) => {
-  const { mode, windowOpacity, isDebugMode } = useDesktopSettings();
+  const { mode, windowOpacity } = useDesktopSettings();
   const windowTheme = themeProp ?? defaultWindowThemes[mode];
   const effectiveOpacity = typeof opacity === 'number' ? opacity : windowOpacity;
   const closeButtonRef = useRef<HTMLButtonElement>(null);
