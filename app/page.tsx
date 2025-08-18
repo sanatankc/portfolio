@@ -71,7 +71,7 @@ export default function Home() {
                     x: 0.03,
                     y: 0.05,
                     width: 0.94,
-                    height: 0.7,
+                    height: 0.76,
                   },
                 },
               },
