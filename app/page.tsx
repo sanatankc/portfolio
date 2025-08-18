@@ -39,12 +39,42 @@ export default function Home() {
             initialWindows={[
               // 'terminal',
               // 'chat',
-              { appId: 'notes', payload: { path: ['~','work.notes'] }, positionPct: { 
-                desktop: { x: 0.50, y: 0.35 }, mobile: { x: 0.02, y: 0.01 } 
-              } },
-              { appId: 'notes', payload: { path: ['~','whoami.notes'] }, positionPct: { 
-                  desktop: { x: 0.15, y: 0.15 }, mobile: { x: 0.05, y: 0.05 } 
-              } },
+              {
+                appId: 'notes',
+                payload: { path: ['~', 'work.notes'] },
+                window: {
+                  desktop: {
+                    x: 0.50,
+                    y: 0.20,
+                    width: 0.45,
+                    height: 0.72,
+                  },
+                  mobile: {
+                    x: 0.02,
+                    y: 0.01,
+                    width: 0.97,
+                    height: 0.7,
+                  },
+                },
+              },
+              {
+                appId: 'notes',
+                payload: { path: ['~', 'whoami.notes'] },
+                window: {
+                  desktop: {
+                    x: 0.15,
+                    y: 0.15,
+                    width: 0.5,
+                    height: 0.57,
+                  },
+                  mobile: {
+                    x: 0.03,
+                    y: 0.05,
+                    width: 0.94,
+                    height: 0.7,
+                  },
+                },
+              },
             ]}
             fx={fxPlayerRef.current || undefined}
           />

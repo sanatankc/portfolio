@@ -26,18 +26,19 @@ interface WindowState {
   backdropBlurPx?: number;
 }
 
-type Position = { x: number; y: number };
+type WindowProperties = {
+  x?: number; // in percentage
+  y?: number; // in percentage
+  width?: number; // in percentage
+  height?: number; // in percentage
+};
 
 type InitialWindowObject = {
   appId: string;
   payload?: unknown;
-  positionPct?: {
-    desktop?: Position;
-    mobile?: Position;
-  };
-  positionPx?: {
-    desktop?: Position;
-    mobile?: Position;
+  window?: {
+    desktop?: WindowProperties;
+    mobile?: WindowProperties;
   };
 };
 
@@ -64,7 +65,10 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const openApp = (
     appId: string,
     payload?: unknown,
-    options?: { preferredPositionPx?: { x: number; y: number } }
+    options?: { 
+      preferredPositionPx?: { x: number; y: number },
+      preferredSizePx?: { width: number; height: number },
+    }
   ) => {
     const app = getApp(appId);
     if (!app) return;
@@ -144,8 +148,12 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     // Determine window size
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-    const width = isMobile ? (window.innerWidth * 0.9) : Math.max(360, window.innerWidth * widthRatio);
-    const height = Math.max(260, window.innerHeight * heightRatio);
+    const width = options?.preferredSizePx?.width
+      ? options.preferredSizePx.width
+      : isMobile ? (window.innerWidth * 0.9) : Math.max(360, window.innerWidth * widthRatio);
+    const height = options?.preferredSizePx?.height
+      ? options.preferredSizePx.height
+      : Math.max(260, window.innerHeight * heightRatio);
 
     // Use caller-provided preferred position if provided
     const preferredPos = options?.preferredPositionPx;
@@ -189,24 +197,29 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
       const appId = typeof entry === 'string' ? entry : (entry as InitialWindowObject).appId;
       const payload = typeof entry === 'string' ? undefined : (entry as InitialWindowObject).payload;
       
-      let positionPx: Position | undefined = undefined;
-      if (typeof entry !== 'string') {
-        const entryObj = entry as InitialWindowObject;
-        if (entryObj.positionPx) {
-          positionPx = isMobile ? entryObj.positionPx.mobile : entryObj.positionPx.desktop;
-        } else if (entryObj.positionPct) {
-          const pct = isMobile ? entryObj.positionPct.mobile : entryObj.positionPct.desktop;
-          if (pct) {
+      let positionPx: { x: number; y: number } | undefined = undefined;
+      let sizePx: { width: number; height: number } | undefined = undefined;
+
+      if (typeof entry !== 'string' && entry.window) {
+        const props = isMobile ? entry.window.mobile : entry.window.desktop;
+        if (props) {
+          if (props.x !== undefined && props.y !== undefined) {
             positionPx = {
-              x: Math.round(window.innerWidth * pct.x),
-              y: Math.round(window.innerHeight * pct.y),
+              x: window.innerWidth * props.x,
+              y: window.innerHeight * props.y,
+            };
+          }
+          if (props.width !== undefined && props.height !== undefined) {
+            sizePx = {
+              width: window.innerWidth * props.width,
+              height: window.innerHeight * props.height,
             };
           }
         }
       }
 
       const timer = window.setTimeout(() => {
-        openApp(appId, payload, positionPx ? { preferredPositionPx: positionPx } : undefined)
+        openApp(appId, payload, { preferredPositionPx: positionPx, preferredSizePx: sizePx })
       }, index * 100);
       initialOpenTimers.current.push(timer);
     });

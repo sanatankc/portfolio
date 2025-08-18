@@ -2,7 +2,7 @@
   <img
     src="./pixel-logos/glitchhouse.png"
     alt="Glitch.house"
-    class="w-[50px]"
+    class="min-w-[50px] w-[50px]"
   />
   <div class="[p:has(small)]:mt-0">
     <small>Oct 24 - May 25</small> 
@@ -21,7 +21,7 @@ Built and led Glitch.house, an AI-powered platform that helps DIY hardware enthu
   <img
   src="./pixel-logos/tekie.png"
   alt="Tekie"
-  class="w-[70px] relative top-[7px]"
+  class="min-w-[70px] w-[70px] relative top-[7px]"
 />
   <div class="[p:has(small)]:mt-0">
     <small>Jun 17 - Oct 23</small> 
@@ -40,7 +40,7 @@ Led frontend for 0 → 1 cross‑platform apps, making Computer Science a story�
   <img
     src="./pixel-logos/thedotstudio.png"
     alt="Dot Studio"
-    class="w-[50px]"
+    class="min-w-[50px] w-[50px]"
   />
   <div class="[p:has(small)]:mt-0">
     <small>Dec 23 - Aug 24</small> 
