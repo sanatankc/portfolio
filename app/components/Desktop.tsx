@@ -57,7 +57,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   const apps = getApps();
 
   console.log('apps...', apps)
-  const { wallpaper, mode, addWallpaper, setWallpaper, isAppSwitcherVisible, toggleAppSwitcher, areAllWindowsHidden } = useDesktopSettings();
+  const { wallpaper, mode, addWallpaper, setWallpaper, isAppSwitcherVisible, toggleAppSwitcher, areAllWindowsHidden, showAllWindows } = useDesktopSettings();
   const silentFx: FxPlayer = { play: () => {}, isLoaded: () => false };
   const effectiveFx = fx ?? silentFx;
 
@@ -150,26 +150,12 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     // Use caller-provided preferred position if provided
     const preferredPos = options?.preferredPositionPx;
     const nonOverlap = findFirstNonOverlapping(width, height, preferredPos);
-    const pos = 
+    let pos = 
       preferredPos
         ? preferredPos
         : nonOverlap ?? computeCascade(width, height);
 
-    // if (isMobile) {
-    //   const centeredX = (window.innerWidth - width) / 2;
-    //   const cascadeBaseX = Math.round(window.innerWidth * 0.1);
-    //   const xOffset = centeredX - cascadeBaseX;
-    //   pos.x += xOffset;
-
-    //   // Make sure it doesn't go off-screen
-    //   const maxX = window.innerWidth - width - 8;
-    //   if (pos.x > maxX) {
-    //     pos.x = maxX;
-    //   }
-    //   if (pos.x < 8) {
-    //     pos.x = 8;
-    //   }
-    // }
+    // showAllWindows();
 
     const id = nextId++;
     setWindows(prev => [
