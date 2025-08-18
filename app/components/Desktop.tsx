@@ -328,7 +328,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
   console.log('wins', windows)
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   return (
-    <div className="w-screen h-screen relative" style={bgStyle}>
+    <div className="w-screen h-screen relative overflow-hidden" style={bgStyle}>
       <div className="absolute left-0 top-0 h-full flex flex-col gap-8 p-4 z-0">
         {apps.map(app => (
           <Icon 

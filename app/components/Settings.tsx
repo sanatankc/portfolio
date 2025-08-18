@@ -222,7 +222,7 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
                 ))}
               </div>
             </div> */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <div className="font-semibold mb-1">Dark/Light Mode</div>
               <div className="flex gap-2">
                 <Button
@@ -236,7 +236,7 @@ const Settings: React.FC<AppProps> = ({ fx }) => {
                   disabled={mode==='light'}
                 >Light</Button>
               </div>
-            </div>
+            </div> */}
           </div>
         )}
         {currentTab===('system' as never) && (
