@@ -28,6 +28,7 @@ const FilePicker: React.FC<FilePickerProps> = ({ initialPath = ['~'], mode, filt
   const [pathInput, setPathInput] = useState<string>(initialPath.join('/'));
   const [fileName, setFileName] = useState<string>(suggestedName ?? '');
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const dir = useMemo(() => getDirectoryByPath(currentPath, fs) as Directory, [currentPath, fs]);
   const rows: FileRow[] = useMemo(() => {
@@ -146,7 +147,8 @@ const FilePicker: React.FC<FilePickerProps> = ({ initialPath = ['~'], mode, filt
             <button
               key={row.name}
               className={`w-full min-w-full block text-left border-b border-slate-100 ${idx === selectedIndex ? 'bg-slate-100' : 'bg-white'} hover:bg-slate-100`}
-              onDoubleClick={() => openRow(row)}
+              onClick={() => isMobile && openRow(row)}
+              onDoubleClick={() => !isMobile && openRow(row)}
               onMouseEnter={() => setSelectedIndex(idx)}
             >
               <div className="grid grid-cols-[minmax(320px,1fr)_120px_120px] px-3 py-2 text-xs">

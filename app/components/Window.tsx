@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Rnd } from 'react-rnd';
 import { defaultWindowThemes } from '../lib/themes';
 import { useDesktopSettings } from '../lib/store';
@@ -43,9 +43,10 @@ const Window: React.FC<WindowProps> = ({
   theme: themeProp,
   backdropBlurPx,
 }) => {
-  const { mode, windowOpacity } = useDesktopSettings();
+  const { mode, windowOpacity, isDebugMode } = useDesktopSettings();
   const windowTheme = themeProp ?? defaultWindowThemes[mode];
   const effectiveOpacity = typeof opacity === 'number' ? opacity : windowOpacity;
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const hexToRgba = (hex: string, alpha: number) => {
     const normalized = hex.replace('#', '');
@@ -81,7 +82,8 @@ const Window: React.FC<WindowProps> = ({
             onClose();
           }}
           className="w-[20px] h-[20px] border-pixel-xs-black flex items-center justify-center"
-            style={{borderColor: windowTheme.foreground, backgroundColor: windowTheme.closeButton, color: windowTheme.closeButtonText}}
+          ref={closeButtonRef}
+          style={{borderColor: windowTheme.foreground, backgroundColor: windowTheme.closeButton, color: windowTheme.closeButtonText}}
         >
           <i className="hn hn-times-solid text-xs"></i>
         </button>
@@ -134,8 +136,18 @@ const Window: React.FC<WindowProps> = ({
           position.y
         );
       }}
-      onDragStart={onFocus}
-      onResizeStart={onFocus}
+      onDragStart={(e) => {
+        const isCloseButton = closeButtonRef.current?.contains(e.target as Node) || closeButtonRef.current === e.target
+        if (!isCloseButton) {
+          onFocus()
+        } else {
+          onClose()
+        } 
+      }}
+      onResizeStart={() => {
+        console.log('resize start....')
+        onFocus()
+      }}
       style={{ zIndex, borderColor: windowTheme.border }}
       bounds="parent"
       dragHandleClassName="window-title-bar"

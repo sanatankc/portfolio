@@ -155,7 +155,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
         ? preferredPos
         : nonOverlap ?? computeCascade(width, height);
 
-    // showAllWindows();
+    showAllWindows();
 
     const id = nextId++;
     setWindows(prev => [
@@ -285,6 +285,7 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
 
   const updateWindowPosition = (id: number, x: number, y: number) => {
     // Snap to 8px grid
+    console.log('window resize....', id, x, y)
     const snap = (n: number) => Math.round(n / 8) * 8;
     const snappedX = snap(x);
     const snappedY = snap(y);
@@ -317,7 +318,12 @@ const Desktop: React.FC<DesktopProps> = ({ initialWindows = [], fx }) => {
     <div className="w-screen h-screen relative" style={bgStyle}>
       <div className="absolute left-0 top-0 h-full flex flex-col gap-8 p-4 z-0">
         {apps.map(app => (
-          <Icon key={app.id} label={app.name} onDoubleClick={() => openApp(app.id)}>
+          <Icon 
+            key={app.id} 
+            label={app.name} 
+            onClick={isMobile ? () => openApp(app.id) : undefined}
+            onDoubleClick={!isMobile ? () => openApp(app.id) : undefined}
+          >
             <app.icon />
           </Icon>
         ))}

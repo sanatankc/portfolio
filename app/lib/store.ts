@@ -23,6 +23,8 @@ interface DesktopSettingsState {
   areAllWindowsHidden: boolean;
   hideAllWindows: () => void;
   showAllWindows: () => void;
+  isDebugMode: boolean;
+  toggleDebugMode: () => void;
   hydrate: () => void;
   persist: () => void;
 }
@@ -64,6 +66,8 @@ export const useDesktopSettings = create<DesktopSettingsState>((set, get) => ({
   areAllWindowsHidden: false,
   hideAllWindows: () => set({ areAllWindowsHidden: true }),
   showAllWindows: () => set({ areAllWindowsHidden: false }),
+  isDebugMode: true,
+  toggleDebugMode: () => set(state => ({ isDebugMode: !state.isDebugMode })),
   hydrate: () => {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {

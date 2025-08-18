@@ -2,15 +2,17 @@ import React from 'react';
 
 interface IconProps {
   label: string;
-  onDoubleClick: () => void;
+  onDoubleClick?: () => void;
+  onClick?: () => void;
   children: React.ReactNode;
 }
 
-const Icon: React.FC<IconProps> = ({ label, onDoubleClick, children }) => {
+const Icon: React.FC<IconProps> = ({ label, onDoubleClick, onClick, children }) => {
   return (
     <div
       className="flex flex-col items-center gap-2 text-white w-24 text-center select-none"
       onDoubleClick={onDoubleClick}
+      onClick={onClick}
     >
       <div className="transition-transform duration-150 hover:scale-105">
         {children}
