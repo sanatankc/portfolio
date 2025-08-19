@@ -1,12 +1,11 @@
-[ ] Fix Responsiveness
-[ ] Fix Terminal App
-[ ] Notes app default width/height based on the content
-[ ] Clean up icons & UI
-[ ] Work on Browser App
-[ ] glitch.house -> complete & optimize
-[ ] Fix Dark mode for portfolio & Light mode for blog
+- [x] Content Fixes
+- [ ] work notes logo mobile responsiveness
+- [ ] Fix default selected app in mobile
 
-[x] Finalize Projects Notes
-[x] Fix VFS Code -> with notes
-[x] Notes app resizing in glitchy
-[x] Notes app save file picker issues
+Later: 
+- [ ] Links styles make it slightly like a button or a better UI for them
+- [ ] Blog Image optimizations
+
+
+Much Later
+- [ ] Dark mode 

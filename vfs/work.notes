@@ -1,4 +1,4 @@
-<div class="flex flex-row gap-4 mb-2 items-start">
+<div class="flex flex-row gap-4 mb-2 items-center relative top-[8px]">
   <img
     src="./pixel-logos/glitchhouse.png"
     alt="Glitch.house"
@@ -36,7 +36,7 @@ Led frontend for 0 → 1 cross‑platform apps, making Computer Science a story�
 
 
 
-<div class="flex flex-row gap-4 mb-2 mt-5 items-start">
+<div class="flex flex-row gap-4 mb-2 mt-5 items-center relative top-[8px]">
   <img
     src="./pixel-logos/thedotstudio.png"
     alt="Dot Studio"
