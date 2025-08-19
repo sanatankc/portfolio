@@ -10,6 +10,7 @@ export default {
     fontFamily: {
       'mono': ['Geneva-12', 'Chicago Plain', 'monospace', 'Menlo', 'Monaco', 'Consolas', 'Courier New'],
       'geneva-12': ['Geneva-12', 'sans-serif'],
+      'chicago-plain': ['Chicago Plain', 'sans-serif'],
       'sans': ['var(--font-satoshi)', 'var(--font-geist-sans)', 'system-ui', 'sans-serif'],
       'satoshi': ['var(--font-satoshi)', 'system-ui', 'sans-serif'], // Using Inter as Satoshi substitute
       'inter': ['var(--font-inter)', 'system-ui', 'sans-serif'],

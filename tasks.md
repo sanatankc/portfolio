@@ -1,5 +1,6 @@
 - [x] Content Fixes
-- [ ] work notes logo mobile responsiveness
+- [x] Terminal App issues
+- [x] work notes logo mobile responsiveness
 - [ ] Fix default selected app in mobile
 
 Later: 

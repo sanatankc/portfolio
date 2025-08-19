@@ -123,6 +123,12 @@ const Terminal: React.FC<AppProps> = ({ fx }) => {
   }, [history]);
 
   useEffect(() => {
+    if (!isExecuting) {
+      focusInput();
+    }
+  }, [isExecuting]);
+
+  useEffect(() => {
     const savedThemes = localStorage.getItem('terminalThemes');
     if (savedThemes) {
       setThemes(JSON.parse(savedThemes));
@@ -164,14 +170,14 @@ const Terminal: React.FC<AppProps> = ({ fx }) => {
 
 
   return (
-    <div className="w-full h-full bg-[var(--background)] text-[var(--foreground)] font-mono flex flex-col" style={terminalStyle} onClick={focusInput}>
+    <div className="w-full h-full bg-[var(--background)] text-[var(--foreground)] flex flex-col" style={terminalStyle} onClick={focusInput}>
       <div className="p-2 overflow-y-auto flex-grow" onClick={focusInput}>
         {history.map((line, index) => (
           <div key={index} dangerouslySetInnerHTML={{ __html: line }}></div>
         ))}
         <div className="flex items-center">
           <span>
-            {promptState?.question || `${currentPath.join('/')}>`}
+            {promptState?.question || (currentPath.join('/') === '~' ? '>>' : `${currentPath.join('/')}>`)}
           </span>
           <div className="relative flex-grow">
             <input

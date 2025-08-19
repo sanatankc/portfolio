@@ -70,10 +70,8 @@ body {
   /* z-index: -1; */
 }
 
-@media (prefers-color-scheme: dark) {
-  .blog-noise-bg {
-    filter: invert(1);
-  }
+.dark .blog-noise-bg {
+  filter: invert(1);
 }
 
 /* Media gallery styles */
