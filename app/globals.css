@@ -378,81 +378,81 @@ body {
   background: transparent !important;
 }
 
-.prose h1 {
+.mdxeditor .prose h1 {
   @apply text-2xl font-bold;
 }
 
-.prose h2 {
+.mdxeditor .prose h2 {
   @apply text-xl font-bold;
 }
 
-.prose h3 {
+.mdxeditor .prose h3 {
   @apply text-lg font-bold;
 }
 
-.prose p {
+.mdxeditor .prose p {
   @apply text-base;
 }
 
-.prose ul {
+.mdxeditor .prose ul {
   @apply list-disc list-inside;
 }
 
-.prose ol {
+.mdxeditor .prose ol {
   @apply list-decimal list-inside;
 }
 
-.prose li {
+.mdxeditor .prose li {
   @apply text-base;
 }
 
 
 
-.prose a {
+.mdxeditor .prose a {
   @apply text-blue-500 underline;
 }
 
-.prose a:hover {
+.mdxeditor .prose a:hover {
   @apply text-blue-600;
   text-decoration: underline;
 }
 
-.prose a:visited {
+.mdxeditor .prose a:visited {
   @apply text-purple-500;
 }
 
-.prose a:active {
+.mdxeditor .prose a:active {
   @apply text-purple-600;
 }
 
-.prose a:focus {
+.mdxeditor .prose a:focus {
   @apply text-purple-700;
 } 
 
-.prose p {
+.mdxeditor .prose p {
   margin-bottom: 0.9rem;
   margin-top: 0.9rem;
 }
 
-.prose > p:first-of-type {
+.mdxeditor .prose > p:first-of-type {
   margin-top: 0rem;
   margin-bottom: 0rem;
 }
 
-.prose p:has(small) {
+.mdxeditor .prose p:has(small) {
   margin-bottom: 0rem;
   margin-top: 0rem;
 }
 
-.prose.text-white {
+.mdxeditor .prose.text-white {
   color: #fff !important;
 }
 
-.prose.text-black {
+.mdxeditor .prose.text-black {
   color: #000 !important;
 }
 
-.prose div.no-space p {
+.mdxeditor .prose div.no-space p {
   margin-top: 0rem ;
   margin-bottom: 0rem;
 }
