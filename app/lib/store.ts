@@ -25,8 +25,6 @@ interface DesktopSettingsState {
   showAllWindows: () => void;
   isDebugMode: boolean;
   toggleDebugMode: () => void;
-  isEditing: boolean;
-  toggleEditing: () => void;
   hydrate: () => void;
   persist: () => void;
 }
