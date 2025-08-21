@@ -1,12 +1,8 @@
-- [x] Content Fixes
-- [x] Terminal App issues
-- [x] work notes logo mobile responsiveness
-- [ ] Fix default selected app in mobile
-
 Later: 
 - [ ] Links styles make it slightly like a button or a better UI for them
 - [ ] Blog Image optimizations
-
-
-Much Later
-- [ ] Dark mode 
+- [ ] Improve Blog content as well
+- [ ] Content for Tekie/glitch.house include more things, deviate it from it just looking like my resume.
+- [ ] Write reflections sort of blog for Tekie.
+- [ ] Spend more time in browser app. 
+- [ ] Dark/Light mode.
