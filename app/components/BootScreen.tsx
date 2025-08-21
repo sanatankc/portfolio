@@ -151,7 +151,7 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
         // Play typewriter sound for visible characters
         const currentChar = currentLine[currentCharIndex];
         if (fxRef.current && currentChar && currentChar !== ' ' && Math.random() > 0.3) {
-          fxRef.current.play('type');
+          // fxRef.current.play('type');
         }
         
         setCurrentCharIndex(prev => prev + 1);
@@ -200,9 +200,9 @@ const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, fx }) => {
         try {
           const audio = new Audio('/fx/click.wav');
           audio.volume = 0.3;
-          audio.play().catch(() => {
-            // Ignore audio errors (user interaction required)
-          });
+          // audio.play().catch(() => {
+          //   // Ignore audio errors (user interaction required)
+          // });
         } catch {
           // Ignore audio errors
         }
