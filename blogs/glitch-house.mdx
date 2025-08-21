@@ -81,7 +81,7 @@ That’s why I built **"Goose"**, a TypeScript library for defining event-driven
 
 ```ts
 const pipeline = goose<{ input: string; result?: string }>(
-  { input: 'Hello' },
+  { input: 'This is a really really long text, which keeps on going...' },
   { promptBaseDir: './prompts' }
 )
   .step({
